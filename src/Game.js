@@ -50,6 +50,10 @@ class Game extends React.Component {
         });
       }
     });
+
+    //TEMPORARY
+    const queryInit = 'inicializar(2, 3)';
+    this.pengine.query(queryInit, (success, response) => {});
   }
 
   handleClick(color) {
@@ -74,7 +78,7 @@ class Game extends React.Component {
     //        [r,b,b,v,p,y,p,r,b,g,p,y,b,r],
     //        [v,g,p,b,v,v,g,g,g,b,v,g,g,g]],r, Grid)
     const gridS = JSON.stringify(this.state.grid).replaceAll('"', "");
-    const queryS = "flick(" + gridS + "," + color + ", Grid)";
+    const queryS = "flick(" + gridS + "," + color + ", NroAdyacencias, Grid)";
     this.setState({
       waiting: true
     });
@@ -82,6 +86,7 @@ class Game extends React.Component {
       if (success) {
         this.setState({
           grid: response['Grid'],
+          points: response['NroAdyacencias'],
           turns: this.state.turns + 1,
           waiting: false
         });
@@ -90,8 +95,11 @@ class Game extends React.Component {
         this.setState({
           waiting: false
         });
+        console.log("FAIL");
       }
     });
+
+    console.log(JSON.stringify(this.state.grid).replaceAll('"', ""));
   }
 
   render() {
