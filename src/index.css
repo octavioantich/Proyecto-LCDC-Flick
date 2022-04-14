@@ -1,5 +1,6 @@
 body {
   font: 14px "Century Gothic", Futura, sans-serif;
+  background-color: black;
   margin: 20px;
 }
 
@@ -40,7 +41,16 @@ body {
   align-items: center;
   margin-top: 40px;
   font-size: 20px;
-  color: darkblue;
+  color: white;
+}
+
+.pointsPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40px;
+  font-size: 20px;
+  color: white;
 }
 
 .turnsLab {

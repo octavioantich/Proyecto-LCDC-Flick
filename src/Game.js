@@ -31,6 +31,7 @@ class Game extends React.Component {
     super(props);
     this.state = {
       turns: 0,
+      points: 1,
       grid: null,
       complete: false,  // true if game is complete, false otherwise
       waiting: false
@@ -110,8 +111,12 @@ class Game extends React.Component {
               />)}
           </div>
           <div className="turnsPanel">
-            <div className="turnsLab">Turns</div>
+            <div className="turnsLab">Turns:</div>
             <div className="turnsNum">{this.state.turns}</div>
+          </div>
+          <div className="pointsPanel">
+            <div className="pointsLab">Points:</div>
+            <div className="pointsNum">{this.state.points}</div>
           </div>
         </div>
         <Board grid={this.state.grid} />
