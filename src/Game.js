@@ -51,11 +51,12 @@ class Game extends React.Component {
 
         //TEMPORARY
         const gridS = JSON.stringify(this.state.grid).replaceAll('"', "");
-        const queryInit = 'inicializar(' +gridS+ ', 2, 3)';
+        const queryInit = 'inicializar(' +gridS+ ', 2, 3, AdyacenciasIniciales)';
         console.log(queryInit);
-        this.pengine.query(queryInit, (success, response) => {
+        this.pengine.query(queryInit, (success, responseInit) => {
           if(success) {
             console.log("inicializado con exito.");
+            this.setState({points: responseInit['AdyacenciasIniciales']})
           }
         });
       }

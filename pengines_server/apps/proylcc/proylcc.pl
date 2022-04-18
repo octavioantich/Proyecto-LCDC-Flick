@@ -19,13 +19,14 @@ adyacentes_actuales([]).
 % Notese que el programa *no* esta inicializado originalmente, esto es "?- inicializado." retorna false.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% inicializar(+G, +F, +C)
+% inicializar(+G, +F, +C, -AdyacenciasIniciales)
 % Inicializa dinamicamente el origen a la posicion de matriz (F,C).
 % Si el programa ya fue inicializado, falla.
 % G: Grilla sobre la cual se operara
 % F: Fila que sera el origen.
 % C: Columna que sera el origen.
-inicializar(G, F, C) :-
+% AdyacenciasIniciales: Cantidad de celdas que son adyacenteC* con el origen que fue pasado por parametro.
+inicializar(G, F, C, AdyacenciasIniciales) :-
     %"settear" el origen
     retract(fila_origen(_FilaPorDefecto)),
     retract(columna_origen(_ColumnaPorDefecto)),
@@ -40,6 +41,9 @@ inicializar(G, F, C) :-
     % las asertamos
     retract(adyacentes_actuales(_L)),
     assert(adyacentes_actuales(Adyacentes)),
+
+    % extra, para mostrar la cantidad de adyacencias iniciales:
+    length(Adyacentes, AdyacenciasIniciales),
 
     % terminar inicializacion
     assert(inicializado).
