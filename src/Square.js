@@ -17,7 +17,7 @@ class Square extends React.Component {
 
     render() {
         return (
-            <div style={{ backgroundColor: colorToCss(this.props.value) }}>
+            <div onClick={this.props.onClick} style={{ backgroundColor: colorToCss(this.props.value) }}>
                 {this.state.text}
             </div>
         );

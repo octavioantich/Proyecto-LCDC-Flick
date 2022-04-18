@@ -34,7 +34,8 @@ class Game extends React.Component {
       points: 1,
       grid: null,
       complete: false,  // true if game is complete, false otherwise
-      waiting: false
+      waiting: false,
+      playable: false  // true after origin was picked 
     };
     this.handleClick = this.handleClick.bind(this);
     this.handlePengineCreate = this.handlePengineCreate.bind(this);
@@ -58,7 +59,8 @@ class Game extends React.Component {
             console.log("inicializado con exito.");
             this.setState({
               points: responseInit['AdyacenciasIniciales'],
-              complete: responseInit['AdyacenciasIniciales'] === 14*14
+              complete: responseInit['AdyacenciasIniciales'] === 14*14,
+              playable: true
             });
           }
         });
@@ -138,7 +140,15 @@ class Game extends React.Component {
             <div className="pointsNum">{this.state.points}</div>
           </div>
         </div>
-        <Board grid={this.state.grid} />
+        <Board 
+          grid={this.state.grid} 
+          onOriginSelected = {
+            this.state.complete ? undefined :
+            origin => {
+              console.log("a" + origin);
+            }
+          }
+        />
       </div>
     );
   }
