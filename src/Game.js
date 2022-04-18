@@ -130,8 +130,7 @@ class Game extends React.Component {
           onOriginSelected = {
             this.state.playable ? undefined :
             origin => {
-              console.log("a" + origin);
-              //TEMPORARY
+              //Inicialization:
               const fila = origin[0];
               const columna = origin[1];
               const gridString = JSON.stringify(this.state.grid).replaceAll('"', "");
@@ -140,7 +139,6 @@ class Game extends React.Component {
 
               this.pengine.query(queryInit, (success, responseInit) => {
                 if(success) {
-                  console.log("inicializado con exito.");
                   this.setState({
                     points: responseInit['AdyacenciasIniciales'],
                     complete: responseInit['AdyacenciasIniciales'] === 14*14,
@@ -151,6 +149,9 @@ class Game extends React.Component {
             }
           }
         />
+        <div className='rightPanel'>
+          <div className='stackLabel'>Historial:</div>
+        </div>
       </div>
     );
   }
