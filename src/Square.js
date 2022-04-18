@@ -17,7 +17,21 @@ class Square extends React.Component {
 
     render() {
         return (
-            <div onClick={this.props.onClick} style={{ backgroundColor: colorToCss(this.props.value) }}>
+            <div 
+                onClick={() => {
+                    if(this.props.onClick) {
+                        this.props.onClick();
+                        this.addStar();}
+                    }
+                } 
+            
+                style={{ 
+                    backgroundColor: colorToCss(this.props.value),
+                    textAlign: "center",
+                    verticalAlign: "center",
+                    fontSize: "30px" 
+                    }}>
+                
                 {this.state.text}
             </div>
         );

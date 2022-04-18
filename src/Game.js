@@ -31,7 +31,7 @@ class Game extends React.Component {
     super(props);
     this.state = {
       turns: 0,
-      points: 1,
+      points: 0,
       grid: null,
       complete: false,  // true if game is complete, false otherwise
       waiting: false,
@@ -49,28 +49,13 @@ class Game extends React.Component {
         this.setState({
           grid: response['Grid']
         });
-
-        //TEMPORARY
-        const gridS = JSON.stringify(this.state.grid).replaceAll('"', "");
-        const queryInit = 'inicializar(' +gridS+ ', 2, 3, AdyacenciasIniciales)';
-        console.log(queryInit);
-        this.pengine.query(queryInit, (success, responseInit) => {
-          if(success) {
-            console.log("inicializado con exito.");
-            this.setState({
-              points: responseInit['AdyacenciasIniciales'],
-              complete: responseInit['AdyacenciasIniciales'] === 14*14,
-              playable: true
-            });
-          }
-        });
       }
     });
   }
 
   handleClick(color) {
-    // No action on click if game is complete or we are waiting.
-    if (this.state.complete || this.state.waiting) {
+    // No action on click if game is complete or we are waiting or if its not playable.
+    if (this.state.complete || this.state.waiting || !this.state.playable) {
       return;
     }
     // Build Prolog query to apply the color flick.
@@ -88,7 +73,7 @@ class Game extends React.Component {
     //        [v,v,b,r,p,b,g,g,p,p,b,y,v,p],
     //        [r,p,g,y,v,y,r,b,v,r,b,y,r,v],
     //        [r,b,b,v,p,y,p,r,b,g,p,y,b,r],
-    //        [v,g,p,b,v,v,g,g,g,b,v,g,g,g]],r, Grid)
+    //        [v,g,p,b,v,v,g,g,g,b,v,g,g,g]],r, X, Grid)
     const gridS = JSON.stringify(this.state.grid).replaceAll('"', "");
     const queryS = "flick(" + gridS + "," + color + ", NroAdyacencias, Grid)";
     this.setState({
@@ -143,9 +128,26 @@ class Game extends React.Component {
         <Board 
           grid={this.state.grid} 
           onOriginSelected = {
-            this.state.complete ? undefined :
+            this.state.playable ? undefined :
             origin => {
               console.log("a" + origin);
+              //TEMPORARY
+              const fila = origin[0];
+              const columna = origin[1];
+              const gridString = JSON.stringify(this.state.grid).replaceAll('"', "");
+              const queryInit = 'inicializar(' + gridString + ',' + fila + ',' + columna + ', AdyacenciasIniciales)';
+              console.log(queryInit);
+
+              this.pengine.query(queryInit, (success, responseInit) => {
+                if(success) {
+                  console.log("inicializado con exito.");
+                  this.setState({
+                    points: responseInit['AdyacenciasIniciales'],
+                    complete: responseInit['AdyacenciasIniciales'] === 14*14,
+                    playable: true
+                  });
+                }
+              });
             }
           }
         />
