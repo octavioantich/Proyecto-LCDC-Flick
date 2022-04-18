@@ -56,7 +56,10 @@ class Game extends React.Component {
         this.pengine.query(queryInit, (success, responseInit) => {
           if(success) {
             console.log("inicializado con exito.");
-            this.setState({points: responseInit['AdyacenciasIniciales']})
+            this.setState({
+              points: responseInit['AdyacenciasIniciales'],
+              complete: responseInit['AdyacenciasIniciales'] === 14*14
+            });
           }
         });
       }
@@ -94,6 +97,7 @@ class Game extends React.Component {
         this.setState({
           grid: response['Grid'],
           points: response['NroAdyacencias'],
+          complete: response['NroAdyacencias'] === 14*14,
           turns: this.state.turns + 1,
           waiting: false
         });
