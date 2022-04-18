@@ -8,28 +8,38 @@
 % que el jugador elija una vez (al principio de la partida) un origen
 :- dynamic fila_origen/1.
 :- dynamic columna_origen/1.
+:- dynamic adyacentes_actuales/1.
 :- dynamic inicializado/0.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Origen por defecto:
+% Estado por defecto:
 fila_origen(0).
 columna_origen(0).
+adyacentes_actuales([]).
 % Notese que el programa *no* esta inicializado originalmente, esto es "?- inicializado." retorna false.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% inicializar(+F, +C)
+% inicializar(+G, +F, +C)
 % Inicializa dinamicamente el origen a la posicion de matriz (F,C).
 % Si el programa ya fue inicializado, falla.
+% G: Grilla sobre la cual se operara
 % F: Fila que sera el origen.
 % C: Columna que sera el origen.
-inicializar(F, C) :-
-    not(inicializado),
-
+inicializar(G, F, C) :-
     %"settear" el origen
     retract(fila_origen(_FilaPorDefecto)),
     retract(columna_origen(_ColumnaPorDefecto)),
     assert(fila_origen(F)),
     assert(columna_origen(C)),
+
+    % Calculamos las primeras adyacencias
+    elemento_en(G, F, C, ColorOrigen),
+    CasillaOrigen = casilla(ColorOrigen, F, C),
+    adyacentes_a_origen(G, CasillaOrigen, Adyacentes),
+
+    % las asertamos
+    retract(adyacentes_actuales(_L)),
+    assert(adyacentes_actuales(Adyacentes)),
 
     % terminar inicializacion
     assert(inicializado).
@@ -293,15 +303,21 @@ flick(Grilla, Color, CantidadAdyacentes, NuevaGrilla) :-
     fila_origen(FilaOrigen),
     columna_origen(ColumnaOrigen),
 
-    elemento_en(Grilla, FilaOrigen, ColumnaOrigen, ColorOrigen),
-    CasillaOrigen = casilla(ColorOrigen, FilaOrigen, ColumnaOrigen),
-    adyacentes_a_origen(Grilla, CasillaOrigen, Adyacentes),
+    %elemento_en(Grilla, FilaOrigen, ColumnaOrigen, ColorOrigen),
+    %CasillaOrigen = casilla(ColorOrigen, FilaOrigen, ColumnaOrigen),
+    %adyacentes_a_origen(Grilla, CasillaOrigen, Adyacentes),
     
+    adyacentes_actuales(Adyacentes),
+
     cambiar_color_todas(Adyacentes, Color, AdyacentesFlicked),
     poner_todas(Grilla, AdyacentesFlicked, NuevaGrilla),
     
     NuevoOrigen = casilla(Color, FilaOrigen, ColumnaOrigen),
     adyacentes_a_origen(NuevaGrilla, NuevoOrigen, NuevasAdyacentes),
+
+    retract(adyacentes_actuales(_L)),
+    assert(adyacentes_actuales(NuevasAdyacentes)),
+
     length(NuevasAdyacentes, CantidadAdyacentes).
 
 

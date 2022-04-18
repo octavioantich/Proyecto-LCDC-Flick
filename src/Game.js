@@ -48,12 +48,18 @@ class Game extends React.Component {
         this.setState({
           grid: response['Grid']
         });
+
+        //TEMPORARY
+        const gridS = JSON.stringify(this.state.grid).replaceAll('"', "");
+        const queryInit = 'inicializar(' +gridS+ ', 2, 3)';
+        console.log(queryInit);
+        this.pengine.query(queryInit, (success, response) => {
+          if(success) {
+            console.log("inicializado con exito.");
+          }
+        });
       }
     });
-
-    //TEMPORARY
-    const queryInit = 'inicializar(2, 3)';
-    this.pengine.query(queryInit, (success, response) => {});
   }
 
   handleClick(color) {
