@@ -175,7 +175,7 @@ adyacentes_abajo(_G, ColorOriginal, casilla(ColorActual, _FA, _CA), _V, []) :-
 
 % Caso Base: Estamos en un borde de la grilla, por lo que no podemos considerar la celda lindante en esa direccion.
 % Asociamos el vacio a Adyacentes.
-adyacentes_abajo(_G, _ColorOriginal, casilla(_ColorActual, 0, _CA), _V, []).
+adyacentes_abajo(_G, _ColorOriginal, casilla(_ColorActual, 13, _CA), _V, []).
 
 % Izquierda:
 % Caso Recursivo: Estamos en una casilla del color correcto.
@@ -215,7 +215,7 @@ adyacentes_derecha(_G, ColorOriginal, casilla(ColorActual, _FA, _CA), _V, []) :-
 
 % Caso Base: Estamos en un borde de la grilla, por lo que no podemos considerar la celda lindante en esa direccion.
 % Asociamos el vacio a Adyacentes.
-adyacentes_derecha(_G, _ColorOriginal, casilla(_ColorActual, _FA, 0), _V, []).
+adyacentes_derecha(_G, _ColorOriginal, casilla(_ColorActual, _FA, 13), _V, []).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % reemplazar(+Lista, E, +Pos, +PosActual -NuevaLista)
