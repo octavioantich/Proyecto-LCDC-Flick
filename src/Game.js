@@ -1,6 +1,7 @@
 import React from 'react';
 import PengineClient from './PengineClient';
 import Board from './Board';
+import Stack from './Stack';
 
 /**
  * List of colors.
@@ -33,6 +34,7 @@ class Game extends React.Component {
       turns: 0,
       points: 0,
       grid: null,
+      history: [],
       complete: false,  // true if game is complete, false otherwise
       waiting: false,
       playable: false  // true after origin was picked 
@@ -76,17 +78,32 @@ class Game extends React.Component {
     //        [v,g,p,b,v,v,g,g,g,b,v,g,g,g]],r, X, Grid)
     const gridS = JSON.stringify(this.state.grid).replaceAll('"', "");
     const queryS = "flick(" + gridS + "," + color + ", NroAdyacencias, Grid)";
+    
+    //Despues de configurar la consulta, entramos en estado waiting
     this.setState({
       waiting: true
     });
+
+    //Disparamos la consulta
     this.pengine.query(queryS, (success, response) => {
+      //Si fue exitosa...
       if (success) {
+        //Actualizamos el estado
         this.setState({
           grid: response['Grid'],
           points: response['NroAdyacencias'],
           complete: response['NroAdyacencias'] === 14*14,
           turns: this.state.turns + 1,
           waiting: false
+        });
+
+        //Disparamos una consulta para actualizar el historial.
+        const stackS = JSON.stringify(this.state.history).replaceAll('"', "");
+        const queryStack = 'push(' + stackS + ', ' + color + ', NewStack)'
+        this.pengine.query(queryStack, (successStack, responseStack) => {
+          if(successStack) {
+            this.setState({history: responseStack['NewStack']});
+          }
         });
       } else {
         // Prolog query will fail when the clicked color coincides with that in the top left cell.
@@ -151,6 +168,7 @@ class Game extends React.Component {
         />
         <div className='rightPanel'>
           <div className='stackLabel'>Historial:</div>
+          <Stack array={this.state.history}/>
         </div>
       </div>
     );

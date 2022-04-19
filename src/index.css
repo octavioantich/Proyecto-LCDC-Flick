@@ -76,3 +76,10 @@ body {
   grid-template-columns: repeat(14, 40px);
   grid-template-rows: repeat(14, 40px);
 }
+
+.stack {
+  margin: 20px;
+  display: grid;
+  grid-template-columns: repeat(1, 40px);
+  grid-template-rows: repeat(13, 40px);  
+}
