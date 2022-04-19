@@ -21,8 +21,8 @@ export function colorToCss(color) {
     case "g": return "green";
     case "b": return "blue";
     case "y": return "yellow";
+    default: return color;
   }
-  return color;
 }
 class Game extends React.Component {
 
@@ -58,7 +58,7 @@ class Game extends React.Component {
   handleClick(color) {
     // No action on click if game is complete or we are waiting or if its not playable.
     // Also no action if we pushed he button of the current color.
-    if (this.state.complete || this.state.waiting || !this.state.playable || (this.state.history.length > 0 && color == this.state.history[0])) {
+    if (this.state.complete || this.state.waiting || !this.state.playable || (this.state.history.length > 0 && color === this.state.history[0])) {
       return;
     }
     // Build Prolog query to apply the color flick.
@@ -98,24 +98,22 @@ class Game extends React.Component {
           waiting: false
         });
 
-        //Disparamos una consulta para actualizar el historial.
+        //Generamos una consulta para actualizar el historial.
         const stackS = JSON.stringify(this.state.history).replaceAll('"', "");
         const queryStack = 'push(' + stackS + ', ' + color + ', NewStack)'
+        
+        //La disparamos
         this.pengine.query(queryStack, (successStack, responseStack) => {
           if(successStack) {
+            //Si tuvimos exito, actualizamos el historial.
             this.setState({history: responseStack['NewStack']});
           }
         });
       } else {
-        // Prolog query will fail when the clicked color coincides with that in the top left cell.
-        this.setState({
-          waiting: false
-        });
-        console.log("FAIL");
+        //Si la consulta a prolog fallo, no cambiamos nada, pero aun asi salimos del estado waiting.
+        this.setState({ waiting: false });
       }
     });
-
-    console.log(JSON.stringify(this.state.grid).replaceAll('"', ""));
   }
 
   render() {
@@ -148,7 +146,7 @@ class Game extends React.Component {
           onOriginSelected = {
             this.state.playable ? undefined :
             origin => {
-              //Inicialization:
+              //Pasamos como propiedad de Board la funcionalidad necesaria para la inicializacion:
               const fila = origin[0];
               const columna = origin[1];
               const gridString = JSON.stringify(this.state.grid).replaceAll('"', "");
