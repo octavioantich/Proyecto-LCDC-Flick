@@ -5,3 +5,4 @@
 :- pengine_application(proylcc).
 :- use_module(proylcc:proylcc).
 :- use_module(proylcc:init).
+:- use_module(proylcc:stack).
