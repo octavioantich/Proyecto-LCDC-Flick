@@ -57,7 +57,8 @@ class Game extends React.Component {
 
   handleClick(color) {
     // No action on click if game is complete or we are waiting or if its not playable.
-    if (this.state.complete || this.state.waiting || !this.state.playable) {
+    // Also no action if we pushed he button of the current color.
+    if (this.state.complete || this.state.waiting || !this.state.playable || (this.state.history.length > 0 && color == this.state.history[0])) {
       return;
     }
     // Build Prolog query to apply the color flick.
