@@ -15,13 +15,13 @@ const colors = ["r", "v", "p", "g", "b", "y"];  // red, violet, pink, green, blu
 
 export function colorToCss(color) {
   switch (color) {
-    case "r": return "red";
-    case "v": return "violet";
-    case "p": return "pink";
-    case "g": return "green";
-    case "b": return "blue";
-    case "y": return "yellow";
-    default: return color;
+    case "r": return "#23362B"; //was red
+    case "v": return "#1BB28C"; //was violet
+    case "p": return "#E86A58"; //was pink
+    case "g": return "#FED45B"; //was green
+    case "b": return "#9BC7C5"; //was blue
+    case "y": return "#EFEEEA"; //was yellow
+    default: return color;      //we add this line to avoid warning.
   }
 }
 class Game extends React.Component {
