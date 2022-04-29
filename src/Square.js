@@ -29,7 +29,10 @@ class Square extends React.Component {
                     backgroundColor: colorToCss(this.props.value),
                     textAlign: "center",
                     verticalAlign: "center",
-                    fontSize: "30px" 
+                    fontSize: "30px",
+                    width: "40px",
+                    height: "40px",
+                    margin: "0 5px 5px" 
                     }}>
                 
                 {this.state.text}

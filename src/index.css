@@ -16,14 +16,6 @@ body {
   margin: 20px;
 }
 
-.rightPanel {
-  display: flex;
-  flex-direction: column;
-  margin: 20px;
-  font-size: 20px;
-  color: white;
-}
-
 .buttonsPanel {
   display: grid;
   grid-template-columns: auto auto auto;
@@ -77,10 +69,53 @@ body {
   grid-template-rows: repeat(14, 40px);
 }
 
+.rightPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  margin: 20px;
+  font-size: 20px;
+  
+  color: white;
+
+  height: 550px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /**border-style: solid;
+  border-width: 5px;
+  border-color: red;**/
+}
+
 .stack {
   margin: 20px;
-  display: grid;
-  grid-template-columns: repeat(1, 40px);
-  grid-template-rows: repeat(10, 40px);
-  row-gap: 10px;  
+
+  display: flexbox;
+  flex-direction: column;
+  justify-content: space-evenly;
+
+  height: 500px;
+
+  /**border-style: solid;
+  border-width: 5px;
+  border-color: green;**/
+}
+
+.rightPanel::-webkit-scrollbar {
+  width: 5px;
+}
+
+.rightPanel::-webkit-scrollbar-track {
+  background: black;
+}
+
+/* Handle */
+.rightPanel::-webkit-scrollbar-thumb {
+  background: rgb(211, 211, 211);
+}
+
+/* Handle on hover */
+.rightPanel::-webkit-scrollbar-thumb:hover {
+  background: white;
 }
