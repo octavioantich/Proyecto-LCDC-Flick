@@ -119,3 +119,42 @@ body {
 .rightPanel::-webkit-scrollbar-thumb:hover {
   background: white;
 }
+
+.emojisPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40px;
+  font-size: 20px;
+  color: white;  
+}
+
+.emojisLab {
+  margin: 20px;
+}
+
+.emojisContainer{
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-template-rows: auto auto;
+  grid-gap: 15px;
+  justify-content: center;
+}
+
+.emojiButton {
+  text-align: center;
+  vertical-align: center;
+  height: 40px;
+  width: 40px;
+  margin: 5px;
+  font-size: 30px;
+  background-color: black;
+  border: none;
+  cursor: pointer;
+}
+
+.emojiButton:hover {
+  outline: none;
+  background-color: white;
+  transition: 500ms;
+}

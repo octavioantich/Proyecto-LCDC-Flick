@@ -4,24 +4,13 @@ import { colorToCss } from './Game';
 //⭐
 
 class Square extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-          text: ""
-        };
-    }
-
-    addStar = () => {
-        this.setState({text: "⭐"});
-     };
-
     render() {
         return (
             <div 
                 onClick={() => {
                     if(this.props.onClick) {
-                        this.props.onClick();
-                        this.addStar();}
+                            this.props.onClick();
+                        }
                     }
                 } 
             
@@ -35,7 +24,7 @@ class Square extends React.Component {
                     margin: "0 5px 5px" 
                     }}>
                 
-                {this.state.text}
+                {this.props.emoji}
             </div>
         );
     }

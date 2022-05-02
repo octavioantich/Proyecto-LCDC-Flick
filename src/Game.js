@@ -35,9 +35,11 @@ class Game extends React.Component {
       points: 0,
       grid: null,
       history: [],
+      emoji: "⭐",
       complete: false,  // true if game is complete, false otherwise
       waiting: false,
-      playable: false  // true after origin was picked 
+      playable: false,  // true after origin was picked
+      origin: undefined
     };
     this.handleClick = this.handleClick.bind(this);
     this.handlePengineCreate = this.handlePengineCreate.bind(this);
@@ -116,6 +118,11 @@ class Game extends React.Component {
     });
   }
 
+  handleEmoji(emj) {
+    console.log(emj);
+    this.setState({emoji: emj});
+  }
+
   render() {
     if (this.state.grid === null) {
       return null;
@@ -140,8 +147,21 @@ class Game extends React.Component {
             <div className="pointsLab">Points:</div>
             <div className="pointsNum">{this.state.points}</div>
           </div>
+          <div className="emojisPanel">
+            <div className="emojisLab">Selector:</div>
+            <div className="emojisContainer">
+              <button className="emojiButton" onClick={() => this.handleEmoji("​⭐​")}>⭐</button>
+              <button className="emojiButton" onClick={() => this.handleEmoji("❤️​")}>❤️</button>
+              <button className="emojiButton" onClick={() => this.handleEmoji("😎​")}>😎</button>
+              <button className="emojiButton" onClick={() => this.handleEmoji("🐈​")}>🐈</button>
+              <button className="emojiButton" onClick={() => this.handleEmoji("🦉​​")}>🦉</button>
+              <button className="emojiButton" onClick={() => this.handleEmoji("🚀​​")}>🚀</button>
+            </div>
+          </div>
         </div>
-        <Board 
+        <Board
+          emoji={this.state.emoji}
+          origin={this.state.origin} 
           grid={this.state.grid} 
           onOriginSelected = {
             this.state.playable ? undefined :
@@ -152,6 +172,9 @@ class Game extends React.Component {
               const gridString = JSON.stringify(this.state.grid).replaceAll('"', "");
               const queryInit = 'inicializar(' + gridString + ',' + fila + ',' + columna + ', AdyacenciasIniciales)';
               console.log(queryInit);
+              this.setState({
+                origin: origin
+              });
 
               this.pengine.query(queryInit, (success, responseInit) => {
                 if(success) {
