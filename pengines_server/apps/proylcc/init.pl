@@ -1,5 +1,15 @@
 :- module(init, [ init/1 ]).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% La aplicacion soporta grillas rectangulares de tamaños arbitrarios.
+% Se debe cambiar el valor de la variable de init manualmente, esto es,
+% se debe hardcodear la grilla. Se opto por esta implementacion por
+% sobre alguna mas extensible por el enfasis que se hizo en que 
+% el levantar la grilla desde el modulo init.pl funcione correctamentet
+% incluso si se implementaban variaciones en tamaño o metodo de generacion
+% 
+% Si bien no hay limites establecidos a nivel codigo, recomendamos encarecidamente mantenerse en el rango [3x3, 20x20]
+
 init([
 		 [y,g,b,g,v,y,p,v,b,p,v,p,v,r],
 		 [r,r,p,p,g,v,v,r,r,b,g,v,p,r],

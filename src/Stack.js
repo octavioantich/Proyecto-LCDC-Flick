@@ -7,6 +7,7 @@ class Stack extends React.Component {
             <div className="stack">
                 {this.props.array.map((cell, i) =>
                     <Square
+                        size={40}
                         value={cell}
                         key={i}
                     />

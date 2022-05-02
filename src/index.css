@@ -62,13 +62,6 @@ body {
   margin-top: 10px;
 }
 
-.board {
-  margin: 20px;
-  display: grid;
-  grid-template-columns: repeat(14, 40px);
-  grid-template-rows: repeat(14, 40px);
-}
-
 .rightPanel {
   display: flex;
   flex-direction: column;
@@ -82,10 +75,6 @@ body {
   height: 550px;
   overflow-y: auto;
   overflow-x: hidden;
-
-  /**border-style: solid;
-  border-width: 5px;
-  border-color: red;**/
 }
 
 .stack {
@@ -96,10 +85,6 @@ body {
   justify-content: space-evenly;
 
   height: 500px;
-
-  /**border-style: solid;
-  border-width: 5px;
-  border-color: green;**/
 }
 
 .rightPanel::-webkit-scrollbar {

@@ -34,6 +34,8 @@ class Game extends React.Component {
       turns: 0,
       points: 0,
       grid: null,
+      cantFilas: 0,
+      cantColumnas: 0,
       history: [],
       emoji: "⭐",
       complete: false,  // true if game is complete, false otherwise
@@ -49,9 +51,12 @@ class Game extends React.Component {
   handlePengineCreate() {
     const queryS = 'init(Grid)';
     this.pengine.query(queryS, (success, response) => {
+      const grilla = response['Grid'];
       if (success) {
         this.setState({
-          grid: response['Grid']
+          grid: grilla,
+          cantFilas: grilla.length,
+          cantColumnas: grilla[0].length //Se asume grilla rectangular
         });
       }
     });
@@ -95,7 +100,7 @@ class Game extends React.Component {
         this.setState({
           grid: response['Grid'],
           points: response['NroAdyacencias'],
-          complete: response['NroAdyacencias'] === 14*14,
+          complete: response['NroAdyacencias'] === this.state.cantFilas*this.state.cantColumnas,
           turns: this.state.turns + 1,
           waiting: false
         });
@@ -160,6 +165,8 @@ class Game extends React.Component {
           </div>
         </div>
         <Board
+          cf={this.state.cantFilas}
+          cc={this.state.cantColumnas}
           emoji={this.state.emoji}
           origin={this.state.origin} 
           grid={this.state.grid} 
@@ -170,8 +177,8 @@ class Game extends React.Component {
               const fila = origin[0];
               const columna = origin[1];
               const gridString = JSON.stringify(this.state.grid).replaceAll('"', "");
-              const queryInit = 'inicializar(' + gridString + ',' + fila + ',' + columna + ', AdyacenciasIniciales)';
-              console.log(queryInit);
+              const queryInit = 'inicializar(' + gridString + ',' + this.state.cantFilas + ',' + this.state.cantColumnas + ',' + fila + ',' + columna + ', AdyacenciasIniciales)';
+              
               this.setState({
                 origin: origin
               });
@@ -180,7 +187,7 @@ class Game extends React.Component {
                 if(success) {
                   this.setState({
                     points: responseInit['AdyacenciasIniciales'],
-                    complete: responseInit['AdyacenciasIniciales'] === 14*14,
+                    complete: responseInit['AdyacenciasIniciales'] === this.state.cantFilas*this.state.cantColumnas,
                     playable: true
                   });
                 }

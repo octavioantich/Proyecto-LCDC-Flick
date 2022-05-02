@@ -9,12 +9,16 @@
 :- dynamic fila_origen/1.
 :- dynamic columna_origen/1.
 :- dynamic adyacentes_actuales/1.
+:- dynamic cant_filas/1.
+:- dynamic cant_columnas/1.
 :- dynamic inicializado/0.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Estado por defecto:
 fila_origen(0).
 columna_origen(0).
+cant_filas(14).
+cant_columnas(14).
 adyacentes_actuales([]).
 % Notese que el programa *no* esta inicializado originalmente, esto es "?- inicializado." retorna false.
 
@@ -26,7 +30,13 @@ adyacentes_actuales([]).
 % F: Fila que sera el origen.
 % C: Columna que sera el origen.
 % AdyacenciasIniciales: Cantidad de celdas que son adyacenteC* con el origen que fue pasado por parametro.
-inicializar(G, F, C, AdyacenciasIniciales) :-
+inicializar(G, CF, CC, F, C, AdyacenciasIniciales) :-
+    %"settear" el tamaño
+    retract(cant_filas(_CantFilasPorDefecto)),
+    retract(cant_columnas(_CantColumnasPorDefecto)),
+    assert(cant_filas(CF)),
+    assert(cant_columnas(CC)),
+
     %"settear" el origen
     retract(fila_origen(_FilaPorDefecto)),
     retract(columna_origen(_ColumnaPorDefecto)),
@@ -175,9 +185,10 @@ adyacentes_arriba(_G, _ColorOriginal, casilla(_ColorActual, 0, _CA), _V, []).
 % Caso Recursivo: Estamos en una casilla del color correcto.
 % La agregamos a Adyacentes y Visitados y miramos todas sus lindantes.
 adyacentes_abajo(Grilla, ColorOriginal, Casilla, Visitados, Adyacentes) :-
+    cant_filas(CantFilas),
     Casilla = casilla(ColorOriginal, FA, CA),
     FN is FA + 1,
-    FN < 14,
+    FN < CantFilas,
     elemento_en(Grilla, FN, CA, ColorNuevo),
     CasillaNueva = casilla(ColorNuevo, FN, CA),
     adyacentes_a(Grilla, ColorOriginal, CasillaNueva, Visitados, Adyacentes).
@@ -189,7 +200,9 @@ adyacentes_abajo(_G, ColorOriginal, casilla(ColorActual, _FA, _CA), _V, []) :-
 
 % Caso Base: Estamos en un borde de la grilla, por lo que no podemos considerar la celda lindante en esa direccion.
 % Asociamos el vacio a Adyacentes.
-adyacentes_abajo(_G, _ColorOriginal, casilla(_ColorActual, 13, _CA), _V, []).
+adyacentes_abajo(_G, _ColorOriginal, casilla(_ColorActual, UltimaFila, _CA), _V, []) :-
+    cant_filas(CantFilas),
+    UltimaFila is CantFilas-1.
 
 % Izquierda:
 % Caso Recursivo: Estamos en una casilla del color correcto.
@@ -215,9 +228,10 @@ adyacentes_izquierda(_G, _ColorOriginal, casilla(_ColorActual, _FA, 0), _V, []).
 % Caso Recursivo: Estamos en una casilla del color correcto.
 % La agregamos a Adyacentes y Visitados y miramos todas sus lindantes.
 adyacentes_derecha(Grilla, ColorOriginal, Casilla, Visitados, Adyacentes) :-
+    cant_columnas(CantCol),
     Casilla = casilla(ColorOriginal, FA, CA),
     CN is CA + 1,
-    CN < 14,
+    CN < CantCol,
     elemento_en(Grilla, FA, CN, ColorNuevo),
     CasillaNueva = casilla(ColorNuevo, FA, CN),
     adyacentes_a(Grilla, ColorOriginal, CasillaNueva, Visitados, Adyacentes).
@@ -229,7 +243,9 @@ adyacentes_derecha(_G, ColorOriginal, casilla(ColorActual, _FA, _CA), _V, []) :-
 
 % Caso Base: Estamos en un borde de la grilla, por lo que no podemos considerar la celda lindante en esa direccion.
 % Asociamos el vacio a Adyacentes.
-adyacentes_derecha(_G, _ColorOriginal, casilla(_ColorActual, _FA, 13), _V, []).
+adyacentes_derecha(_G, _ColorOriginal, casilla(_ColorActual, _FA, UltimaCol), _V, []) :-
+    cant_columnas(CantCol),
+    UltimaCol is CantCol-1.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % reemplazar(+Lista, E, +Pos, +PosActual -NuevaLista)
