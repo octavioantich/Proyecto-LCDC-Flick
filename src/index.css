@@ -143,3 +143,33 @@ body {
   background-color: white;
   transition: 500ms;
 }
+
+.emojiButton:focus {
+  background-color: white;
+}
+
+.swal-overlay {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.swal-modal {
+  background-color: black;
+  border: 3px solid white;
+}
+
+.swal-title {
+  color: white;
+}
+.swal-text {
+  padding: 17px;
+  display: block;
+  margin: 22px;
+  text-align: center;
+  color: white;
+}
+
+.swal-button {
+  background-color: gray;
+  border: 1px solid gray;
+  margin-right: 24vh;
+}

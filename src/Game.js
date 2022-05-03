@@ -2,6 +2,7 @@ import React from 'react';
 import PengineClient from './PengineClient';
 import Board from './Board';
 import Stack from './Stack';
+import swal from 'sweetalert';
 
 /**
  * List of colors.
@@ -116,6 +117,10 @@ class Game extends React.Component {
             this.setState({history: responseStack['NewStack']});
           }
         });
+        if (this.state.complete){
+          this.handleWin();
+        }
+
       } else {
         //Si la consulta a prolog fallo, no cambiamos nada, pero aun asi salimos del estado waiting.
         this.setState({ waiting: false });
@@ -123,16 +128,28 @@ class Game extends React.Component {
     });
   }
 
+  
+
   handleEmoji(emj) {
     console.log(emj);
     this.setState({emoji: emj});
   }
+
+  handleWin(){
+    swal({
+      title: "🎉Ganaste🎉",
+      text: "Felicidades, has ganado el juego en "+this.state.turns+" turnos",
+      button: "Okey",
+    });
+  }
+
 
   render() {
     if (this.state.grid === null) {
       return null;
     }
     return (
+      
       <div className="game">
         <div className="leftPanel">
           <div className="buttonsPanel">
@@ -190,6 +207,9 @@ class Game extends React.Component {
                     complete: responseInit['AdyacenciasIniciales'] === this.state.cantFilas*this.state.cantColumnas,
                     playable: true
                   });
+                }
+                if (this.state.complete){
+                  this.handleWin();
                 }
               });
             }
