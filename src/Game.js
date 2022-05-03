@@ -155,7 +155,7 @@ class Game extends React.Component {
           <div className="emojisPanel">
             <div className="emojisLab">Selector:</div>
             <div className="emojisContainer">
-              <button className="emojiButton" onClick={() => this.handleEmoji("​⭐​")}>⭐</button>
+              <button className="emojiButton" onClick={() => this.handleEmoji("⭐​​")}>⭐</button>
               <button className="emojiButton" onClick={() => this.handleEmoji("❤️​")}>❤️</button>
               <button className="emojiButton" onClick={() => this.handleEmoji("😎​")}>😎</button>
               <button className="emojiButton" onClick={() => this.handleEmoji("🐈​")}>🐈</button>
