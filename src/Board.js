@@ -5,6 +5,7 @@ class Board extends React.Component {
 
     render() {
         const origin = this.props.origin;
+        const def = this.props.defaultInitialization;
         const pixelsMax = 560;
         const divisor = Math.max(this.props.cc, this.props.cf);
         const px = Math.floor(pixelsMax / divisor);
@@ -24,7 +25,7 @@ class Board extends React.Component {
                             value={cell}
                             key={i + "." + j}
                             onClick={this.props.onOriginSelected && (() => this.props.onOriginSelected([i, j]))}
-                            emoji = {origin && origin[0] === i && origin[1] === j ? this.props.emoji : undefined}
+                            emoji = {((origin && origin[0] === i && origin[1] === j) || (def && i === 0 && j === 0)) ? this.props.emoji : undefined}
                         />
                     )
                 )}

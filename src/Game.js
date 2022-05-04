@@ -42,7 +42,8 @@ class Game extends React.Component {
       complete: false,  // true if game is complete, false otherwise
       waiting: false,
       playable: false,  // true after origin was picked
-      origin: undefined
+      origin: undefined,
+      defaultInitialization: false
     };
     this.handleClick = this.handleClick.bind(this);
     this.handlePengineCreate = this.handlePengineCreate.bind(this);
@@ -64,10 +65,36 @@ class Game extends React.Component {
   }
 
   handleClick(color) {
-    // No action on click if game is complete or we are waiting or if its not playable.
+    // No action on click if game is complete or we are waiting.
     // Also no action if we pushed he button of the current color.
-    if (this.state.complete || this.state.waiting || !this.state.playable || (this.state.history.length > 0 && color === this.state.history[0])) {
+    if (this.state.complete || this.state.waiting || (this.state.history.length > 0 && color === this.state.history[0])) {
       return;
+    }
+
+    //if game is not playable when first clicked on a color button
+    //We initialize in 0,0
+    if(!this.state.playable) {
+      const gridString = JSON.stringify(this.state.grid).replaceAll('"', "");
+      const queryInit = 'inicializar(' + gridString + ',' + this.state.cantFilas + ',' + this.state.cantColumnas + ', 0, 0, AdyacenciasIniciales)';
+
+      this.setState({waiting: true});
+
+      this.pengine.query(queryInit, (success, responseInit) => {
+        if(success) {
+          this.setState({
+            points: responseInit['AdyacenciasIniciales'],
+            complete: responseInit['AdyacenciasIniciales'] === this.state.cantFilas*this.state.cantColumnas,
+            playable: true,
+            defaultInitialization: true,
+            waiting: false
+          });
+        } else {
+          this.setState({waiting: false});
+        }
+        if (this.state.complete){
+          this.handleWin();
+        }
+      });
     }
     // Build Prolog query to apply the color flick.
     // The query will be like:
@@ -186,27 +213,33 @@ class Game extends React.Component {
           cc={this.state.cantColumnas}
           emoji={this.state.emoji}
           origin={this.state.origin} 
-          grid={this.state.grid} 
+          grid={this.state.grid}
+          defaultInitialization={this.state.defaultInitialization} 
           onOriginSelected = {
             this.state.playable ? undefined :
             origin => {
               //Pasamos como propiedad de Board la funcionalidad necesaria para la inicializacion:
               const fila = origin[0];
               const columna = origin[1];
-              const gridString = JSON.stringify(this.state.grid).replaceAll('"', "");
-              const queryInit = 'inicializar(' + gridString + ',' + this.state.cantFilas + ',' + this.state.cantColumnas + ',' + fila + ',' + columna + ', AdyacenciasIniciales)';
-              
               this.setState({
                 origin: origin
               });
+
+              const gridString = JSON.stringify(this.state.grid).replaceAll('"', "");
+              const queryInit = 'inicializar(' + gridString + ',' + this.state.cantFilas + ',' + this.state.cantColumnas + ',' + fila + ',' + columna + ', AdyacenciasIniciales)';
+
+              this.setState({waiting: true});
 
               this.pengine.query(queryInit, (success, responseInit) => {
                 if(success) {
                   this.setState({
                     points: responseInit['AdyacenciasIniciales'],
                     complete: responseInit['AdyacenciasIniciales'] === this.state.cantFilas*this.state.cantColumnas,
-                    playable: true
+                    playable: true,
+                    waiting: false
                   });
+                } else {
+                  this.setState({waiting: false});
                 }
                 if (this.state.complete){
                   this.handleWin();
