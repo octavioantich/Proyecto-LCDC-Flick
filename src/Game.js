@@ -169,11 +169,28 @@ class Game extends React.Component {
   }
 
   handleWin(){
+    // swal({
+    //   title: "🎉Ganaste🎉",
+    //   text: "Felicidades, has ganado el juego en "+this.state.turns+" turnos",
+    //   buttons: ["Okey","Volver a intentarlo"],
+    // });
+
     swal({
       title: "🎉Ganaste🎉",
       text: "Felicidades, has ganado el juego en "+this.state.turns+" turnos",
-      button: "Okey",
-    });
+      buttons: {
+        cancel: "Finalizar juego",
+        restart: {
+          text: "Volver a intentarlo",
+          value: "restart",
+        },
+      },
+    })
+    .then((value) => {
+      if (value=="restart"){
+        window.location.reload()
+      }
+        });
   }
 
 
@@ -190,6 +207,7 @@ class Game extends React.Component {
               <button
                 className="colorBtn"
                 style={{ backgroundColor: colorToCss(color) }}
+                //onClick={() => this.handleWin()}
                 onClick={() => this.handleClick(color)}
                 key={color}
               />)}
