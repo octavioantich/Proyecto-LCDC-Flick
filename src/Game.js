@@ -137,17 +137,23 @@ class Game extends React.Component {
         const stackS = JSON.stringify(this.state.history).replaceAll('"', "");
         const queryStack = 'push(' + stackS + ', ' + color + ', NewStack)'
         
+        this.setState({
+          waiting: true
+        });
+
         //La disparamos
         this.pengine.query(queryStack, (successStack, responseStack) => {
           if(successStack) {
             //Si tuvimos exito, actualizamos el historial.
-            this.setState({history: responseStack['NewStack']});
+            this.setState({history: responseStack['NewStack'], waiting: false});
+          } else {
+            this.setState({waiting: false});
           }
         });
+
         if (this.state.complete){
           this.handleWin();
         }
-
       } else {
         //Si la consulta a prolog fallo, no cambiamos nada, pero aun asi salimos del estado waiting.
         this.setState({ waiting: false });
