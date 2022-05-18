@@ -174,3 +174,15 @@ body {
   margin-right: 4vh;
 }
 
+.inputField   {
+  background-color: gray;
+  width: 40px;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.helpButton{
+  background-color: black;
+  border-color: white;
+  color: white;
+}

@@ -163,7 +163,10 @@ class Game extends React.Component {
     });
   }
 
-  handleHelp(depth) {
+  handleHelp() {
+
+    var depth= parseInt(document.getElementById("profundidad").value);
+    console.log(depth);
     if(this.state.waiting || this.state.complete || this.state.origin === undefined) {
       return;
     }
@@ -299,7 +302,10 @@ class Game extends React.Component {
         </div>
         <div className='rightPanel'>
           <div className='stackLabel'>Ayuda:</div>
-          <button onClick={() => this.handleHelp(3)}>Ayuda</button>
+          <input className='inputField' type="number" id="profundidad" min="0" value="3" />
+          
+
+          <button className='helpButton' onClick={() => this.handleHelp()}>Ayuda</button>
           <Stack array={this.state.help}/>
           <div className="pointsLab">Resultado:</div>
           <div className="pointsNum">{this.state.pointsWithHelp > 0 ? this.state.pointsWithHelp : '-'}</div>
