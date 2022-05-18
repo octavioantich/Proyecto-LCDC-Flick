@@ -490,16 +490,24 @@ simular_flick(Grilla, Color, Adyacentes, NuevasAdyacentes, CantidadAdyacentes, N
 % Grid: Grilla sobre la cual se trabaja
 % Adyacencias: Adyacencias originales, previa a la simulacion
 % Camino: Lista de colores a los cuales realizar flick
+% CaminoRecorrido: Lista de colores del camino a los cuales ya se realizo flick
 % CantidadAdyacencias: Cantidad de celdas que son adyacenteC* al origen al finalizar el ultimo flick
 
 %CB: Llegamos al final del camino
-simular_camino(_Grid, Adyacencias, [], CantidadAdyacencias) :-
+simular_camino(_Grid, Adyacencias, [], [], CantidadAdyacencias) :-
     length(Adyacencias, CantidadAdyacencias).
 
+%CB: Ganamos antes de llegar al final del camino
+simular_camino(Grid, Adyacencias, [Paso | _PasosRestantes], [Paso], CantidadAdyacencias) :-
+    simular_flick(Grid, Paso, Adyacencias, _NuevasAdyacentes, CantidadAdyacencias, _NuevaGrilla),
+    cant_columnas(CantCol),
+    cant_filas(CantFil),
+    CantidadAdyacencias is CantCol*CantFil.
+
 %CR: Quedan cosas por simular
-simular_camino(Grid, Adyacencias, [Paso | PasosRestantes], CantidadAdyacencias) :-
+simular_camino(Grid, Adyacencias, [Paso | PasosRestantes], [Paso | CaminoRecorrido], CantidadAdyacencias) :-
     simular_flick(Grid, Paso, Adyacencias, NuevasAdyacentes, _CA, NuevaGrilla),
-    simular_camino(NuevaGrilla, NuevasAdyacentes, PasosRestantes, CantidadAdyacencias).
+    simular_camino(NuevaGrilla, NuevasAdyacentes, PasosRestantes, CaminoRecorrido, CantidadAdyacencias).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % simular_todos_caminos(+GrillaInicial, +AdyacenciasIniciales, +CaminosTotales, -Soluciones).
@@ -512,10 +520,10 @@ simular_camino(Grid, Adyacencias, [Paso | PasosRestantes], CantidadAdyacencias) 
 simular_todos_caminos(_GrillaInicial, _AdyacenciasIniciales, [], []).
 
 simular_todos_caminos(GrillaInicial, AdyacenciasIniciales, [Camino | CaminosRestantes], [Solucion | SolucionesRestantes]) :-
-    Camino = [_R | CaminoUtil],
-    length(CaminoUtil, L),
-    simular_camino(GrillaInicial, AdyacenciasIniciales, CaminoUtil, CantidadAdyacencias),
-    Solucion = [CaminoUtil | [L  | [CantidadAdyacencias]]],
+    Camino = [_R | CaminoUtil], %No nos sirve considerar la raiz, pues es el color "en el que ya estamos".
+    simular_camino(GrillaInicial, AdyacenciasIniciales, CaminoUtil, CaminoRecorrido, CantidadAdyacencias),
+    length(CaminoRecorrido, L),
+    Solucion = [CaminoRecorrido | [L  | [CantidadAdyacencias]]],
     simular_todos_caminos(GrillaInicial, AdyacenciasIniciales, CaminosRestantes, SolucionesRestantes).
 
 
