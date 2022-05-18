@@ -34,10 +34,12 @@ class Game extends React.Component {
     this.state = {
       turns: 0,
       points: 0,
+      pointsWithHelp: 0,
       grid: null,
       cantFilas: 0,
       cantColumnas: 0,
       history: [],
+      help: [],
       emoji: "⭐",
       complete: false,  // true if game is complete, false otherwise
       waiting: false,
@@ -161,7 +163,26 @@ class Game extends React.Component {
     });
   }
 
-  
+  handleHelp(depth) {
+    if(this.state.waiting || this.state.complete || this.state.origin === undefined) {
+      return;
+    }
+
+    const gridS = JSON.stringify(this.state.grid).replaceAll('"', "");
+    const queryS = "mejor_camino(" + gridS + "," + depth + ", Soluciones, NroAdyacencias)";
+    console.log(queryS);
+    this.setState({waiting: true});
+
+    this.pengine.query(queryS, (success, response) => {
+      if(success) {
+        let ady = response['NroAdyacencias'];
+        let sec = response['Soluciones'];
+        this.setState({waiting: false, help: sec, pointsWithHelp: ady});
+      } else {
+        this.setState({waiting: false});
+      }
+    });
+  }
 
   handleEmoji(emj) {
     console.log(emj);
@@ -187,7 +208,7 @@ class Game extends React.Component {
       },
     })
     .then((value) => {
-      if (value=="restart"){
+      if (value==="restart"){
         window.location.reload()
       }
         });
@@ -275,6 +296,13 @@ class Game extends React.Component {
         <div className='rightPanel'>
           <div className='stackLabel'>Historial:</div>
           <Stack array={this.state.history}/>
+        </div>
+        <div className='rightPanel'>
+          <div className='stackLabel'>Ayuda:</div>
+          <button onClick={() => this.handleHelp(3)}>Ayuda</button>
+          <Stack array={this.state.help}/>
+          <div className="pointsLab">Resultado:</div>
+          <div className="pointsNum">{this.state.pointsWithHelp > 0 ? this.state.pointsWithHelp : '-'}</div>
         </div>
       </div>
     );
