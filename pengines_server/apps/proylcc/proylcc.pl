@@ -124,27 +124,27 @@ adyacentes_a_origen(Grilla, casilla(ColorOriginal, FilaOriginal, ColumnaOriginal
     adyCStar([FilaOriginal, ColumnaOriginal], Grilla, AdyacentesPre),
 	casilla_adapter(ColorOriginal, AdyacentesPre, Adyacentes).
 
-/*
- * adyCStar(Origin, +Grid, -Res)
- * Calcula el conjunto de celdas adyacentesC* de la celda Origin en la grilla Grid
- * siguiendo una estrategia de propagación o expansión.
- */
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% adyCStar(+Origin, +Grid, -Res)
+% Calcula el conjunto de celdas adyacentesC* de la celda Origin en la grilla Grid
+% siguiendo una estrategia de propagación o expansión.
+% Origin: Posicion (par de enteros [F, C]) a partir del cual se hara la expansion.
+% Grid: Grilla sobre la cual se operara
+% Res: Lista de posiciones que son adyacenteC* a Origin.
 adyCStar(Origin, Grid, Res) :-
     adyCStarSpread([Origin], [], Grid, Res).
 
-/*
- * adyCStarSpread(+Pend, +Vis, +Grid, -Res)
- * Pend: por "pendientes", inicialmente es la lista [Origin], y en general es 
- * el conjunto de celdas adyacentesC* a Origin que aún no fueron consideradas.
- * Vis: por "visitados", inicialmente [], son las celdas adyacentesC* a la Origen 
- * que ya fueron consideradas.
- * Grid: idem adyCStar
- * Res: idem adyCStar
- * En cada paso se selecciona una celda de las pendientes, se pasa a visitados, y
- * se agregan a pendientes todas aquellas adyacentes a la celda, del mismo color, que no estén
- * ya ni en pendientes ni visitados.
- */
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% adyCStarSpread(+Pend, +Vis, +Grid, -Res)
+% Pend: por "pendientes", inicialmente es la lista [Origin], y en general es 
+% el conjunto de celdas adyacentesC* a Origin que aún no fueron consideradas.
+% Vis: por "visitados", inicialmente [], son las celdas adyacentesC* a la Origen 
+% que ya fueron consideradas.
+% Grid: idem adyCStar
+% Res: idem adyCStar
+% En cada paso se selecciona una celda de las pendientes, se pasa a visitados, y
+% se agregan a pendientes todas aquellas adyacentes a la celda, del mismo color, que no estén
+% ya ni en pendientes ni visitados.
 
 adyCStarSpread([], Vis, _Grid, Vis).
 
@@ -160,34 +160,42 @@ adyCStarSpread(Pend, Vis, Grid, Res):-
     append(AdyCP, Ps, NPend),
     adyCStarSpread(NPend, [P|Vis], Grid, Res).
 
-/* 
- * adyC(+P, +Grid, -A)
- */
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Verdadero ssi las casillas en las posiciones P y A son adyacenteC
+% P: Posicion (par de enteros [F, C]) de la primera casilla.
+% Grid: Grilla sobre la cual se opera
+% A: Posicion de la primera casilla.
 adyC(P, Grid, A):-
     ady(P, Grid, A),
     color(P, Grid, C),
     color(A, Grid, C).
 
-/* 
- * ady(+P, +Grid, -A)
- */
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ady(+P, +Grid, +A)
+% Verdadero ssi las casillas en las posiciones P y A son adyacentes.
+% P: Posicion (par de enteros [F, C]) de la primera casilla.
+% Grid: Grilla sobre la cual se opera
+% A: Posicion de la primera casilla.
 
+% Abajo
 ady([X, Y], Grid, [X1, Y]):-
     length(Grid, L),
     X < L - 1,
     X1 is X + 1.
 
+% Arriba
 ady([X, Y], _Grid, [X1, Y]):-
     X > 0,
     X1 is X - 1.
 
+% Derecha
 ady([X, Y], Grid, [X, Y1]):-
     Grid = [F|_],
     length(F, L),
     Y < L - 1,
     Y1 is Y + 1.
 
+% Izquierda
 ady([X, Y], _Grid, [X, Y1]):-
     Y > 0,
     Y1 is Y - 1.
