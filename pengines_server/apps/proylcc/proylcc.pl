@@ -98,6 +98,18 @@ elemento_en(Grilla, FilaBuscada, ColumnaBuscada, E) :-
 %              ...
 %  [m0, m1, m2, m3, ..., mn]]
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% casilla_adapter(+Color, +ListaListas, -ListaCasillas).
+% Para cada elemento [f, c] en ListaListas crea una estructura casilla(Color, f, c)
+% Implementamos esto para adaptar la solucion de adyacenteC* propuesta por la catedra a
+% nuestra implementacion.
+% Color: Color con el cual se asociaran las casillas creadas
+% ListaListas: Lista de pares enteros [f, c] donde f denota una fila y c una columna.
+% 			   Idealmente fue obtenida como respuesta del predicado adyCStar/3.
+% ListaCasillas: Lista de casillas adaptada a partir de ListaListas.
+casilla_adapter(Color, ListaListas, ListaCasillas) :-
+    findall(casilla(Color, F, C), (member([F, C], ListaListas)), ListaCasillas).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % adyacentes_a_origen(+Grilla, +CasillaOrigen, -Adyacentes).
 % Asocia Adyacentes con una lista de todas las casillas que son adyacenteC* con CasillaOrigen en Grilla.
@@ -108,145 +120,86 @@ elemento_en(Grilla, FilaBuscada, ColumnaBuscada, E) :-
 % Adyacentes: Lista de las celdas que son adyacenteC* con respecto a CasillaOrigen.
 
 %Esto es solo una "shell":
-adyacentes_a_origen(Grilla, CasillaOrigen, Adyacentes) :-
-    CasillaOrigen = casilla(ColorOriginal, _FilaOriginal, _ColumnaOriginal),
-    adyacentes_a(Grilla, ColorOriginal, CasillaOrigen, [], Adyacentes).
+adyacentes_a_origen(Grilla, casilla(ColorOriginal, FilaOriginal, ColumnaOriginal), Adyacentes) :-
+    adyCStar([FilaOriginal, ColumnaOriginal], Grilla, AdyacentesPre),
+	casilla_adapter(ColorOriginal, AdyacentesPre, Adyacentes).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% adyacentes_a(+Grilla, +CasillaOrigen, +CasillaActual, +Visitados, -Adyacentes).
-% Asocia Adyacentes con una lista de todas las casillas que son adyacenteC* con CasillaOrigen en Grilla.
-% Una casilla se considera AdyacenteC* de si misma, por lo que siempre se devolvera, como minimo [CasillaOrigen | []].
-% Nota, si la CasillaOrigen NO es una casilla de la Grilla, aun asi se devolvera como minimo [CasillaOrigen | []].
-% Grilla: Grilla en la que se operara.
-% ColorOriginal: Color de la casilla a partir de la cual se calcularan las celdas adyacenteC*.
-% CasillaActual: Casilla que se esta analizando en un determinado momento.
-% Visitados: Lista que mantiene todas las casillas adyacenteC* respecto a CasillaOrigen que ya se visitaron, para evitar ciclos.
-% Adyacentes: Lista de las celdas que son adyacenteC* con respecto a CasillaOrigen.
+/*
+ * adyCStar(Origin, +Grid, -Res)
+ * Calcula el conjunto de celdas adyacentesC* de la celda Origin en la grilla Grid
+ * siguiendo una estrategia de propagación o expansión.
+ */
 
-% Caso base: llegamos a una casilla en la cual NO compartimos color
-adyacentes_a(_Grilla, ColorOriginal, casilla(ColorActual, _FA, _CA), _Visitados, []) :-
-    ColorOriginal \== ColorActual.
+adyCStar(Origin, Grid, Res) :-
+    adyCStarSpread([Origin], [], Grid, Res).
 
-% Caso base: Llegamos a una casilla visitada
-adyacentes_a(_Grilla, _ColorOriginal, Casilla, Visitados, []) :-
-    member(Casilla, Visitados).
+/*
+ * adyCStarSpread(+Pend, +Vis, +Grid, -Res)
+ * Pend: por "pendientes", inicialmente es la lista [Origin], y en general es 
+ * el conjunto de celdas adyacentesC* a Origin que aún no fueron consideradas.
+ * Vis: por "visitados", inicialmente [], son las celdas adyacentesC* a la Origen 
+ * que ya fueron consideradas.
+ * Grid: idem adyCStar
+ * Res: idem adyCStar
+ * En cada paso se selecciona una celda de las pendientes, se pasa a visitados, y
+ * se agregan a pendientes todas aquellas adyacentes a la celda, del mismo color, que no estén
+ * ya ni en pendientes ni visitados.
+ */
 
-% Caso recursivo: Llegamos a una casilla de color correcto y no visitada
-% La agregamos a las adyacentes y analizamos todas sus lindantes, de manera transitiva.
-adyacentes_a(Grilla, ColorOriginal, Casilla, Visitados, [Casilla | Adyacentes]) :-
-    %Explicitamos esta condicion para evitar tener multiples resultados:
-    not(member(Casilla, Visitados)),
-    %El resto son condiciones necesarias.
-    Casilla = casilla(ColorOriginal, _FA, _CA),
-    append([Casilla], Visitados, VisitadosConCasilla),
-    adyacentes_arriba(Grilla, ColorOriginal, Casilla, VisitadosConCasilla, AdArr),
-    append(VisitadosConCasilla, AdArr, VisitadosArriba),
-    adyacentes_abajo(Grilla, ColorOriginal, Casilla, VisitadosArriba, AdAbj),
-    append(VisitadosArriba, AdAbj, VisitadosAbajo),
-    adyacentes_izquierda(Grilla, ColorOriginal, Casilla, VisitadosAbajo, AdIzq),
-    append(VisitadosAbajo, AdIzq, VisitadosIzquierda),
-    adyacentes_derecha(Grilla, ColorOriginal, Casilla, VisitadosIzquierda, AdDer),
-    append(AdArr, AdAbj, AdyacentesVertical),
-    append(AdIzq, AdDer, AdyacentesHorizontal),
-    append(AdyacentesVertical, AdyacentesHorizontal, Adyacentes).
+adyCStarSpread([], Vis, _Grid, Vis).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Nota: Documentamos las siguientes 4 funciones de manera "generica" puesto que su comportamiento es analogo
+adyCStarSpread(Pend, Vis, Grid, Res):-
+    Pend = [P|Ps],
+    findall(A, 
+	        (
+    	        adyC(P, Grid, A),
+        	    not(member(A, Pend)),
+            	not(member(A, Vis))
+	        ), 
+            AdyCP),
+    append(AdyCP, Ps, NPend),
+    adyCStarSpread(NPend, [P|Vis], Grid, Res).
 
-% adyacentes_direccion(+Grilla, +ColorOriginal, +CasillaActual, +Visitados, -Adyacentes).
-% Asocia Adyacentes con una lista de todas las casillas que son adyacenteC* con la casilla lindante a Casilla en direccion en Grilla.
-% Grilla: Grilla en la que se operara.
-% ColorOriginal: Color de la casilla a partir de la cual se calcularan las celdas adyacenteC*.
-% CasillaActual: Casilla que se esta analizando en un determinado momento.
-% Visitados: Lista que mantiene todas las casillas adyacenteC* respecto a CasillaOrigen que ya se visitaron, para evitar ciclos.
-% Adyacentes: Lista de las celdas que son adyacenteC* con respecto a CasillaOrigen.
+/* 
+ * adyC(+P, +Grid, -A)
+ */
+
+adyC(P, Grid, A):-
+    ady(P, Grid, A),
+    color(P, Grid, C),
+    color(A, Grid, C).
+
+/* 
+ * ady(+P, +Grid, -A)
+ */
+
+ady([X, Y], Grid, [X1, Y]):-
+    length(Grid, L),
+    X < L - 1,
+    X1 is X + 1.
+
+ady([X, Y], _Grid, [X1, Y]):-
+    X > 0,
+    X1 is X - 1.
+
+ady([X, Y], Grid, [X, Y1]):-
+    Grid = [F|_],
+    length(F, L),
+    Y < L - 1,
+    Y1 is Y + 1.
+
+ady([X, Y], _Grid, [X, Y1]):-
+    Y > 0,
+    Y1 is Y - 1.
 
 
-% Arriba:
-% Caso Recursivo: Estamos en una casilla del color correcto.
-% La agregamos a Adyacentes y Visitados y miramos todas sus lindantes.
-adyacentes_arriba(Grilla, ColorOriginal, Casilla, Visitados, Adyacentes) :-
-    Casilla = casilla(ColorOriginal, FA, CA),
-    FN is FA - 1,
-    FN >= 0,
-    elemento_en(Grilla, FN, CA, ColorNuevo),
-    CasillaNueva = casilla(ColorNuevo, FN, CA),
-    adyacentes_a(Grilla, ColorOriginal, CasillaNueva, Visitados, Adyacentes).
+/* 
+ * color(P, Grid, C)
+ */
 
-% Caso Base: Estamos en una casilla de un color incorrecto.
-% Asociamos el vacio a Adyacentes.
-adyacentes_arriba(_G, ColorOriginal, casilla(ColorActual, _FA, _CA), _V, []) :-
-	 ColorOriginal \== ColorActual.
-
-% Caso Base: Estamos en un borde de la grilla, por lo que no podemos considerar la celda lindante en esa direccion.
-% Asociamos el vacio a Adyacentes.
-adyacentes_arriba(_G, _ColorOriginal, casilla(_ColorActual, 0, _CA), _V, []).
-
-% Abajo:
-% Caso Recursivo: Estamos en una casilla del color correcto.
-% La agregamos a Adyacentes y Visitados y miramos todas sus lindantes.
-adyacentes_abajo(Grilla, ColorOriginal, Casilla, Visitados, Adyacentes) :-
-    cant_filas(CantFilas),
-    Casilla = casilla(ColorOriginal, FA, CA),
-    FN is FA + 1,
-    FN < CantFilas,
-    elemento_en(Grilla, FN, CA, ColorNuevo),
-    CasillaNueva = casilla(ColorNuevo, FN, CA),
-    adyacentes_a(Grilla, ColorOriginal, CasillaNueva, Visitados, Adyacentes).
-
-% Caso Base: Estamos en una casilla de un color incorrecto.
-% Asociamos el vacio a Adyacentes.
-adyacentes_abajo(_G, ColorOriginal, casilla(ColorActual, _FA, _CA), _V, []) :-
-	 ColorOriginal \== ColorActual.
-
-% Caso Base: Estamos en un borde de la grilla, por lo que no podemos considerar la celda lindante en esa direccion.
-% Asociamos el vacio a Adyacentes.
-adyacentes_abajo(_G, _ColorOriginal, casilla(_ColorActual, UltimaFila, _CA), _V, []) :-
-    cant_filas(CantFilas),
-    UltimaFila is CantFilas-1.
-
-% Izquierda:
-% Caso Recursivo: Estamos en una casilla del color correcto.
-% La agregamos a Adyacentes y Visitados y miramos todas sus lindantes.
-adyacentes_izquierda(Grilla, ColorOriginal, Casilla, Visitados, Adyacentes) :-
-    Casilla = casilla(ColorOriginal, FA, CA),
-    CN is CA - 1,
-    CN >= 0,
-    elemento_en(Grilla, FA, CN, ColorNuevo),
-    CasillaNueva = casilla(ColorNuevo, FA, CN),
-    adyacentes_a(Grilla, ColorOriginal, CasillaNueva, Visitados, Adyacentes).
-
-% Caso Base: Estamos en una casilla de un color incorrecto.
-% Asociamos el vacio a Adyacentes.
-adyacentes_izquierda(_G, ColorOriginal, casilla(ColorActual, _FA, _CA), _V, []) :-
-	 ColorOriginal \== ColorActual.
-
-% Caso Base: Estamos en un borde de la grilla, por lo que no podemos considerar la celda lindante en esa direccion.
-% Asociamos el vacio a Adyacentes.
-adyacentes_izquierda(_G, _ColorOriginal, casilla(_ColorActual, _FA, 0), _V, []).
-
-% Derecha:
-% Caso Recursivo: Estamos en una casilla del color correcto.
-% La agregamos a Adyacentes y Visitados y miramos todas sus lindantes.
-adyacentes_derecha(Grilla, ColorOriginal, Casilla, Visitados, Adyacentes) :-
-    cant_columnas(CantCol),
-    Casilla = casilla(ColorOriginal, FA, CA),
-    CN is CA + 1,
-    CN < CantCol,
-    elemento_en(Grilla, FA, CN, ColorNuevo),
-    CasillaNueva = casilla(ColorNuevo, FA, CN),
-    adyacentes_a(Grilla, ColorOriginal, CasillaNueva, Visitados, Adyacentes).
-
-% Caso Base: Estamos en una casilla de un color incorrecto.
-% Asociamos el vacio a Adyacentes.
-adyacentes_derecha(_G, ColorOriginal, casilla(ColorActual, _FA, _CA), _V, []) :-
-	 ColorOriginal \== ColorActual.
-
-% Caso Base: Estamos en un borde de la grilla, por lo que no podemos considerar la celda lindante en esa direccion.
-% Asociamos el vacio a Adyacentes.
-adyacentes_derecha(_G, _ColorOriginal, casilla(_ColorActual, _FA, UltimaCol), _V, []) :-
-    cant_columnas(CantCol),
-    UltimaCol is CantCol-1.
+color([X,Y], Grid, C):-
+    nth0(X, Grid, F),
+    nth0(Y, F, C).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % reemplazar(+Lista, E, +Pos, +PosActual -NuevaLista)
