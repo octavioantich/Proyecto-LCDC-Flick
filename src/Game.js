@@ -3,7 +3,7 @@ import PengineClient from './PengineClient';
 import Board from './Board';
 import Stack from './Stack';
 import swal from 'sweetalert';
-
+import Logo from "./loading.gif";
 /**
  * List of colors.
  */
@@ -164,7 +164,10 @@ class Game extends React.Component {
   }
 
   handleHelp() {
-
+    var element1 = document.getElementById("loadingGif");
+    var element2 = document.getElementById("arrayHistorial");
+    element2.style.display = "none";
+    element1.style.display = "block";
     var depth= parseInt(document.getElementById("profundidad").value);
     console.log(depth);
     if(this.state.waiting || this.state.complete || this.state.origin === undefined) {
@@ -178,6 +181,8 @@ class Game extends React.Component {
 
     this.pengine.query(queryS, (success, response) => {
       if(success) {
+        element1.style.display = "none";
+        element2.style.display = "block";
         let ady = response['NroAdyacencias'];
         let sec = response['Soluciones'];
         this.setState({waiting: false, help: sec, pointsWithHelp: ady});
@@ -300,15 +305,16 @@ class Game extends React.Component {
           <div className='stackLabel'>Historial:</div>
           <Stack array={this.state.history}/>
         </div>
-        <div className='rightPanel'>
-          <div className='stackLabel'>Ayuda:</div>
-          <input className='inputField' type="number" id="profundidad" min="0" value="3" />
+        <div className='rightRightPanel'>
           
-
+        
+          <div className='stackLabel'>Ayuda:</div>
+          <input className='inputField' type="number" id="profundidad" min="0" defaultValue="3" />
           <button className='helpButton' onClick={() => this.handleHelp()}>Ayuda</button>
-          <Stack array={this.state.help}/>
           <div className="pointsLab">Resultado:</div>
           <div className="pointsNum">{this.state.pointsWithHelp > 0 ? this.state.pointsWithHelp : '-'}</div>
+          <div className='bloqueGif' id="loadingGif" ><img src={Logo} /></div>
+          <div id="arrayHistorial">  <Stack  array={this.state.help}/> </div>
         </div>
       </div>
     );
