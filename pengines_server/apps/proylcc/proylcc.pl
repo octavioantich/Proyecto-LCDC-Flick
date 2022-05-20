@@ -541,7 +541,7 @@ mayor_de_lista(MenorActual, [Z | Zs], Respuesta) :-
 %Caso base: Una lista vacia ya esta ordenada.
 insert_sort([], []).
 
-%Casro Recursivo: Tenemos aun elementos:
+% Caso Recursivo: Tenemos aun elementos:
 % Eliminamos el mayor, 
 % ordenamos el resto, 
 % ponemos el mayor a la cabeza del resto ordenado.
@@ -551,3 +551,78 @@ insert_sort(L, Ordenada) :-
     insert_sort(ListaSinMenor, OrdenadaRec),
     Ordenada = [Menor | OrdenadaRec].
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% mejor_origen(+Grid, -MejorFila, -MejorColumna)
+% Asocia a [MejorFila, MejorColumna] la posicion con mas adyacencias iniciales.
+% Grid: Grilla sobre la cual se operara
+% MejorFila: Fila de la mejor posicion de origen
+% MejorColumna: Columna de la mejor posicion de origen
+mejor_origen(Grid, MejorFila, MejorColumna) :-
+    % Obtenemos manualmente el tamano de Grid.
+    % No podemos contar con nuestros predicados dinamicos porque
+    % Este predicado se ejecuta cuando el programa aun no ha sido inicializado
+    Grid = [F | _Fs],
+    length(Grid, CantFil),
+    length(F, CantCol),
+    
+    % Obtenemos una lista con la cantidad de adyacencias iniciales de cada origen
+    simular_origenes(Grid, 0, 0, CantFil, CantCol, Origenes),
+    
+    % Obtenemos el mejor origen
+	Origenes = [O | _Os],
+    mejor_origen_lista(Origenes, O, MejorOrigen),
+    
+    % Extraemos la informacion que nos interesa
+	MejorOrigen = [MejorFila, MejorColumna, _Ad].
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% simular_origenes(+Grid, +FA, +CA, +CF, +CC, -Origenes)
+% Simula la eleccion de origen en todas las posibles casillas de grid y
+% devuelve la lista con ternas [Fila, Columna, Cantidad de Adyacentes].
+% Grid: Grilla sobre la cual se opera
+% FA: Fila sobre la cual se esta considerando el origen
+% CA: Columna sobre la cual se esta considerando el origen
+% CF: Cantidad de filas en Grid
+% CC: Cantidad de columnas en grid
+% Origenes: Lista de ternas descriptas anteriormente
+
+% CB: Recorrimos toda la grilla
+simular_origenes(_Grid, CF, _CA, CF, _CC, []) :- !.
+
+% CR: Llegamos al final de una fila
+simular_origenes(Grid, FA, CC, CF, CC, Restantes) :-
+    FN is FA+1,
+    simular_origenes(Grid, FN, 0, CF, CC, Restantes).
+
+% CR: Estamos "en el medio" de una dada fila
+simular_origenes(Grid, FA, CA, CF, CC, [Origen | Restantes]) :-
+    elemento_en(Grid, FA, CA, Color),
+    adyacentes_a_origen(Grid, casilla(Color, FA, CA), Adyacencias),
+    length(Adyacencias, CantAd),
+    Origen = [FA, CA, CantAd],
+    CN is CA+1,
+    simular_origenes(Grid, FA, CN, CF, CC, Restantes).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% mejor_origen_lista(+Lista, +Mejor, -MejorAbsoluto)
+% Asocia a MejorAbsoluto el origen que mayor cantidad de adyacencias tiene de Lista.
+% Nota, si dos Origenes tienen la misma cantidad de adyacencias, prioriza el que este
+% mas "arriba a la izquierda".
+% Lista: Lista de Ternas [F, C, Ad], descripta en simular_origenes.
+% Mejor: La mejor Terna de Lista hasta ahora.
+% MejorAbsoluto: La mejor terna de Lista.
+
+% CB: Ya no queda lista para recorrer.
+mejor_origen_lista([], M, M).
+
+%CR: Queda lista para recorrer y el elemento actual es mejor que M.
+mejor_origen_lista([T | Ts], M, MejorAbs) :-
+    T = [_FT, _CT, AT],
+    M = [_FM, _CM, AM],
+    AT > AM, !,
+    mejor_origen_lista(Ts, T, MejorAbs).
+
+%CR: Queda lista para recorrer y el elemento actual NO es mejor que M.
+mejor_origen_lista([_T | Ts], M, MejorAbs) :-
+    mejor_origen_lista(Ts, M, MejorAbs).
+	% No necesitamos comparar nada por el cut en el caso recursivo anterior

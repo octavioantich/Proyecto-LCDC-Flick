@@ -170,7 +170,32 @@ class Game extends React.Component {
     element1.style.display = "block";
     var depth= parseInt(document.getElementById("profundidad").value);
     console.log(depth);
-    if(this.state.waiting || this.state.complete || this.state.origin === undefined) {
+    
+    if(this.state.waiting || this.state.complete) {
+      return;
+    }
+
+    if(this.state.origin === undefined) {
+      const gridS = JSON.stringify(this.state.grid).replaceAll('"', "");
+      const queryS = "mejor_origen(" + gridS + ", MF, MC)";
+      console.log(queryS);
+      this.setState({waiting: true});
+      
+      this.pengine.query(queryS, (success, response) => {
+        if(success) {
+          console.log(response);
+          console.log(response['MF'] + ", " + response['MC']);
+          element1.style.display = "none";
+          element2.style.display = "block";
+
+          //ACA :)
+
+          this.setState({waiting: false});
+        } else {
+          this.setState({waiting: false});
+        }
+      });
+
       return;
     }
 
@@ -306,14 +331,15 @@ class Game extends React.Component {
           <Stack array={this.state.history}/>
         </div>
         <div className='rightRightPanel'>
-          
-        
           <div className='stackLabel'>Ayuda:</div>
           <input className='inputField' type="number" id="profundidad" min="0" defaultValue="3" />
           <button className='helpButton' onClick={() => this.handleHelp()}>Ayuda</button>
+          
           <div className="pointsLab">Resultado:</div>
           <div className="pointsNum">{this.state.pointsWithHelp > 0 ? this.state.pointsWithHelp : '-'}</div>
-          <div className='bloqueGif' id="loadingGif" ><img src={Logo} /></div>
+          
+          <div className='bloqueGif' id="loadingGif"><img src={Logo} /></div>
+          
           <div id="arrayHistorial">  <Stack  array={this.state.help}/> </div>
         </div>
       </div>

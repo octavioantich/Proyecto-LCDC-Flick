@@ -29,11 +29,16 @@ body {
   width: 40px;
   border: none;
   cursor: pointer;
+  transition: 500ms;
 }
 
 .colorBtn:hover {
   outline: none;
-  border: 2px solid black;
+  height: 38px;
+  width: 38px;
+  margin-top: 1px;
+  margin-left: 1px;
+  transition: 500ms;
 }
 
 .turnsPanel {
@@ -136,6 +141,7 @@ body {
   background-color: black;
   border: none;
   cursor: pointer;
+  transition: 500ms;
 }
 
 .emojiButton:hover {
@@ -185,7 +191,15 @@ body {
   background-color: black;
   border-color: white;
   color: white;
-  margin-bottom: 5px;
+  margin: 5px;
+  font: 18px "Century Gothic", Futura, sans-serif;
+  transition: 500ms;
+}
+
+.helpButton:hover {
+  background-color: white;
+  color: black;
+  transition: 500ms;
 }
 
 .rightRightPanel{
@@ -210,4 +224,4 @@ body {
 
 img {
   max-width: 100%;
-  }
+}
