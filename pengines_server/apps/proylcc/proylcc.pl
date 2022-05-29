@@ -59,6 +59,16 @@ inicializar(G, CF, CC, F, C, AdyacenciasIniciales) :-
     % terminar inicializacion
     assert(inicializado).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% puntos_para_ganar(?P)
+% Asocia a P con la cantidad de puntos necesarios para ganar dada una cierta inicializacion.
+% P: Cantidad de puntos necesarios para ganar.
+puntos_para_ganar(P) :-
+    inicializado,
+    cant_filas(F),
+    cant_columnas(C),
+    P is F*C.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % buscar(+Lista, +PosBuscada, +PosActual, -Respuesta)
 % Asocia el elemento en la posicion buscada de Lista a Respuesta.
@@ -330,97 +340,53 @@ colores_sin_actual(ColorActual, ColoresSinActual) :-
     colores(ColoresTotales),
     remover(ColorActual, ColoresTotales, ColoresSinActual).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /*
- * ARBOLES:
- * Representaremos un arbol como sigue: t(R, H),
- * Donde R es el rotulo del arbol (sera un color)
- * Y H es una lista de forma [t1, t2, ..., tn] que representa a los hijos del
- * nodo en el cual esta; o bien [] cuando el nodo es hoja.
- * 
- * Para el proyecto, length(H, 5) siempre que no sea hoja.
- * Queda hardcodeado de esa manera, por el momento. 
- */
+ * JUGADAS:
+ * Una jugada es una lista de 6 elementos: J = [G, C, Ady, CA, Sec, Depth], donde:
+ * G es la grid correspondiente a realizar los flick a los colores de Sec (en orden)
+ * C es el color actual (Se podria obtener a partir de Sec, pero manteniendolo por separado se vuelve mas legible el codigo)
+ * Ady son las celdas que son adyC* al origen
+ * CA es la cantidad de adyacencias, o lo que es igual, la longitud de Ady
+ * Sec es la secuencia (lista de colores)que conforman a la jugada
+ * Depth es la profundidad de la jugada (Se podria obtener a partir de Sec, pero manteniendolo por separado se vuelve mas legible el codigo).
+ * */
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% formar_arbol(+Rotulo, +Depth, -Arbol):
-% Forma un "arbol de colores" (ver informe) de profundidad Depth.
-% +Rotulo: Rotulo que tendra la raiz del arbol
-% +Depth: Profundidad del arbol
-% Arbol: Arbol de colores con raiz Rotulo y de profundidad Depth.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+siguiente_nivel([G, C, Ady, CA, Sec, Depth], SiguienteNivel) :-
+    colores_sin_actual(C, Colores),
+    NuevaDepth is Depth+1,
+    findall(Jugada, (
+                    member(Col, Colores),
+                    simular_flick(G, Col, Ady, NuevasAdy, NuevasCA, NuevaGrid),
+                    NuevasCA > CA,
+                    append(Sec, [Col], NuevaSec),
+                    Jugada = [NuevaGrid, Col, NuevasAdy, NuevasCA, NuevaSec, NuevaDepth]
+                    ), SiguienteNivel).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Nota: Los cut son criticos para mantener la semantica del predicado.
+% Se aplica la optimizacion de condiciones completas y exhaustivas.
 
-%CB: Profundidad 0 -> creamos una hoja.
-formar_arbol(Rotulo, 0, t(Rotulo, [])).
+%CB: No queda mas frontera por recorrer
+frontera([], [], _ProfundidadBuscada).
 
-%CR: Profundidad > 0 -> creamos un nodo con el dado rotulo, y creamos recursivamente sus hijos
-formar_arbol(Rotulo, Depth, Arbol) :-
-    Depth > 0,
-    NuevaDepth is Depth - 1,
-    
-    colores_sin_actual(Rotulo, [RH0, RH1, RH2, RH3, RH4]),
-    
-    %Temporalmente queda hard-codeado que cada nodo tiene 5 hijos :/
-    formar_arbol(RH0, NuevaDepth, H0),
-    formar_arbol(RH1, NuevaDepth, H1),
-    formar_arbol(RH2, NuevaDepth, H2),
-    formar_arbol(RH3, NuevaDepth, H3),
-    formar_arbol(RH4, NuevaDepth, H4),
+%CR: La jugada actual ya gano -> no calculamos su siguiente nivel, pero SI la guardamos.
+frontera([Jugada | Jugadas], [Jugada | FronteraResultante], ProfundidadBuscada) :-
+    Jugada = [_G, _Color, _Ady, PuntosGanar, _Sec, _Depth],
+    puntos_para_ganar(PuntosGanar),
+    !, % No es necesario comprobar si unifica con otra cosa :)
+	frontera(Jugadas, FronteraResultante, ProfundidadBuscada).
 
-	Arbol = t(Rotulo, [H0, H1, H2, H3, H4]).
+%CR: La jugada actual es de la prof. buscada -> no calculamos su siguiente nivel, pero SI la guardamos.
+frontera([Jugada | Jugadas], [Jugada | FronteraResultante], ProfundidadBuscada) :-
+    Jugada = [_G, _Color, _Ady, _P, _Sec, ProfundidadBuscada],
+    !, % No es necesario comprobar si unifica con otra cosa :)
+	frontera(Jugadas, FronteraResultante, ProfundidadBuscada).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% camino_hoja(+Arbol, -Camino)
-% Devuelve un camino desde la raiz de Arbol a una hoja arbitraria.
-% Arbol: Arbol de Colores sobre el cual se operara.
-% Camino: Lista de rotulos desde la raiz hasta una hoja arbitraria.
-
-%CB: LLegamos a una hoja -> El "camino" es el rotulo de la hoja.
-camino_hoja(t(R, []), [R]).
-
-%CR: Estamos en un nodo interno -> El camino es el rotulo de este nodo
-%    seguido del camino de un hijo (arbitrario) hasta una hoja.
-camino_hoja(t(R, Hijos), [R | Camino]) :-
-    Hijos = [ _H | _Hs ], %Nos aseguramos de que no sea vacio -> este nodo no es hoja.
-    member(Hijo, Hijos),  %Tomamos un hijo arbitrario de los hijos de este nodo
-    camino_hoja(Hijo, Camino).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% caminos_posibles(+ColorOrigen, +Depth, -Caminos)
-% Crea un ADC de profundidad Depth con raiz ColorOrigen
-% Y genera y devuelve los caminos desde la raiz a cada una de las hojas
-% ColorOrigen: Rotulo de la raiz del ADC
-% Depth: Profundidad del ADC
-% Caminos: Lista de listas. Contiene los caminos desde la raiz del ADC hasta todas sus hojas.
-caminos_posibles(ColorOrigen, Depth, Caminos) :-
-    formar_arbol(ColorOrigen, Depth, Arbol),
-    findall(Camino, camino_hoja(Arbol, Camino), Caminos).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% mejor_camino(+Grid, +Depth, -Solucion, -Adyacencias)
-% Predice el "mejor camino" (ver informe para criterios) de profundidad Depth
-% Grid: Grilla sobre la cual se operara
-% Depth: Profundidad del camino
-% Solucion: Mejor camino encontrado
-% Adyacencias: Cantidad de adyacencias que habra al final de recorrer solucion
-mejor_camino(Grid, Depth, Secuencia, CantidadAdyacentes) :-
-    % Calculamos del primer color y la primera lista de casos
-    fila_origen(F),
-    columna_origen(C),
-    elemento_en(Grid, F, C, ColorOrigen),
-
-    % Calculamos las adyacencias originales
-    adyacentes_a_origen(Grid, casilla(ColorOrigen, F, C), AdyacentesOriginales),
-
-    % Encontramos los caminos de profundidad Depth con todos los colores que nos son de interesa
-    caminos_posibles(ColorOrigen, Depth, Caminos),
-
-    %Simulamos todos los caminos posibles
-    simular_todos_caminos(Grid, AdyacentesOriginales, Caminos, Soluciones),
-    
-    %Ordenamos las soluciones y tomamos la mejor entre ellas
-    insert_sort(Soluciones, SolucionesOrdenadas),
-    SolucionesOrdenadas = [MejorSolucion | _Otras],
-    MejorSolucion = [Secuencia, _Longitud, CantidadAdyacentes].
+%CR: La jugada actual NO es de la prof buscada aun, y no gano -> calculamos su siguiente nivel, y descartamos
+frontera([Jugada | Jugadas], FronteraResultante, ProfundidadBuscada) :-
+	siguiente_nivel(Jugada, SiguienteNivel),
+    append(Jugadas, SiguienteNivel, NuevaFrontera),
+    frontera(NuevaFrontera, FronteraResultante, ProfundidadBuscada).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % simular_flick(+Grid, +Color, +Adyacentes, -NuevasAdyacentes, -CantidadAdyacentes).
@@ -445,66 +411,22 @@ simular_flick(Grilla, Color, Adyacentes, NuevasAdyacentes, CantidadAdyacentes, N
 
     length(NuevasAdyacentes, CantidadAdyacentes).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% simular_camino(+Grid, +Adyacencias, +Camino, -CantidadAdyacencias)
-% Simula hacer los flicks del camino recibido y "retorna" y la cantidad final de adyacencias.
-% Grid: Grilla sobre la cual se trabaja
-% Adyacencias: Adyacencias originales, previa a la simulacion
-% Camino: Lista de colores a los cuales realizar flick
-% CaminoRecorrido: Lista de colores del camino a los cuales ya se realizo flick
-% CantidadAdyacencias: Cantidad de celdas que son adyacenteC* al origen al finalizar el ultimo flick
-
-%CB: Llegamos al final del camino
-simular_camino(_Grid, Adyacencias, [], [], CantidadAdyacencias) :-
-    length(Adyacencias, CantidadAdyacencias).
-
-%CB: Ganamos antes de llegar al final del camino
-simular_camino(Grid, Adyacencias, [Paso | _PasosRestantes], [Paso], CantidadAdyacencias) :-
-    simular_flick(Grid, Paso, Adyacencias, _NuevasAdyacentes, CantidadAdyacencias, _NuevaGrilla),
-    cant_columnas(CantCol),
-    cant_filas(CantFil),
-    CantidadAdyacencias is CantCol*CantFil.
-
-%CR: Quedan cosas por simular
-simular_camino(Grid, Adyacencias, [Paso | PasosRestantes], [Paso | CaminoRecorrido], CantidadAdyacencias) :-
-    simular_flick(Grid, Paso, Adyacencias, NuevasAdyacentes, _CA, NuevaGrilla),
-    simular_camino(NuevaGrilla, NuevasAdyacentes, PasosRestantes, CaminoRecorrido, CantidadAdyacencias).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% simular_todos_caminos(+GrillaInicial, +AdyacenciasIniciales, +CaminosTotales, -Soluciones).
-% Realiza la operacion "simular_camino" sobre todos los caminos en CaminosTotales, y asocia a Soluciones una lista del desempeño de dichos caminos.
-% GrilaInicial: Grilla sobre la cual se opera.
-% AdyacenciasIniciales: Adyacencias originales, previa a la simulacion.
-% CaminosTotales: Lista de caminos a simular
-% Soluciones: Lista de los caminos recorridos y su desempeño
-
-simular_todos_caminos(_GrillaInicial, _AdyacenciasIniciales, [], []).
-
-simular_todos_caminos(GrillaInicial, AdyacenciasIniciales, [Camino | CaminosRestantes], [Solucion | SolucionesRestantes]) :-
-    Camino = [_R | CaminoUtil], %No nos sirve considerar la raiz, pues es el color "en el que ya estamos".
-    simular_camino(GrillaInicial, AdyacenciasIniciales, CaminoUtil, CaminoRecorrido, CantidadAdyacencias),
-    length(CaminoRecorrido, L),
-    Solucion = [CaminoRecorrido | [L  | [CantidadAdyacencias]]],
-    simular_todos_caminos(GrillaInicial, AdyacenciasIniciales, CaminosRestantes, SolucionesRestantes).
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% comparar_soluciones(+A, +B):
-% Vale ssi A es estrictamente mejor solucion que B.
+% comparar_soluciones(+JA, +JB):
+% Vale ssi JA es estrictamente mejor solucion que JB.
 % Una solucion es mejor que otra si tiene mayor cantidad de adyacencias
-% O, si tienen la misma cantidad de adyacencias, si tiene menos movimientos
-% A: Solucion A.
-% B: Solucion B
-comparar_soluciones(SolucionA, SolucionB) :-
-    SolucionA = [_CaminoA, _LongitudA, AdyacenciasA],
-	SolucionB = [_CaminoB, _LongitudB, AdyacenciasB],
-    AdyacenciasA > AdyacenciasB.
+% O, si tienen la misma cantidad de adyacencias, si tiene menos movimientos (menor profundidad)
+% JA: Jugada A.
+% JB: Jugada B
+comparar_jugadas(JA, JB) :-
+    JA = [_GA, _CA, _AA, PA, _SA, _DA],
+    JB = [_GB, _CB, _AB, PB, _SB, _DB],
+    PA > PB, !. %Si PA > PB, PA y PB NO unificaran nunca, por lo que no necesitamos tener en cuenta el otro caso del predicado.
 
-comparar_soluciones(SolucionA, SolucionB) :-
-    SolucionA = [_CaminoA, LongitudA, AdyacenciasA],
-	SolucionB = [_CaminoB, LongitudB, AdyacenciasB],
-    AdyacenciasA = AdyacenciasB,
-    LongitudA < LongitudB.
+comparar_jugadas(JA, JB) :-
+    JA = [_GA, _CA, _AA, P, _SA, DA],
+    JB = [_GB, _CB, _AB, P, _SB, DB],
+    DA < DB.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % mayor_de_lista(-Mayor, +L)
@@ -518,17 +440,16 @@ comparar_soluciones(SolucionA, SolucionB) :-
 mayor_de_lista_shell(X, [Z | Zs]) :- mayor_de_lista(Z, [Z | Zs], X).
 
 %Caso base. El mayor elemento de una lista vacia es el menor elemento hasta ahora
-mayor_de_lista(MenorActual, [], MenorActual).
+mayor_de_lista(MayorActual, [], MayorActual).
 
 %Caso recursivo 1: El menor actual es menor que la cabeza
-mayor_de_lista(MenorActual, [Z | Zs], Respuesta) :-
-    comparar_soluciones(MenorActual, Z),
-    mayor_de_lista(MenorActual, Zs, Respuesta).
+mayor_de_lista(MayorActual, [Z | Zs], Respuesta) :-
+    comparar_jugadas(MayorActual, Z), !,
+    mayor_de_lista(MayorActual, Zs, Respuesta).
 
-%Caso recursivo 1: El menor actual NO es menor que la cabeza,
+%Caso recursivo 2: El menor actual NO es menor que la cabeza,
 %la cabeza pasa a ser el menor actual
-mayor_de_lista(MenorActual, [Z | Zs], Respuesta) :-
-    not(comparar_soluciones(MenorActual, Z)),
+mayor_de_lista(_MayorActual, [Z | Zs], Respuesta) :-
     mayor_de_lista(Z, Zs, Respuesta).
 
 
@@ -550,6 +471,29 @@ insert_sort(L, Ordenada) :-
 	remover(Menor, L, ListaSinMenor),
     insert_sort(ListaSinMenor, OrdenadaRec),
     Ordenada = [Menor | OrdenadaRec].
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+mejor_camino(Grid, Depth, Secuencia, CantidadAdyacentes) :-
+    % Checkeamos que se haya inicializado el programa previo a tratar de encontrar un mejor camino
+    inicializado,
+    
+    % Obtenemos la informacion necesaria para obtener la casilla de origen
+    fila_origen(FilaOrigen),
+    columna_origen(ColumnaOrigen),
+    elemento_en(Grid, FilaOrigen, ColumnaOrigen, ColorOrigen),
+
+    % Obtenemos las adyacencias iniciales, y la cantidad de las mismas
+    adyacentes_a_origen(Grid, casilla(ColorOrigen, FilaOrigen, ColumnaOrigen), AdyacenciasIniciales),
+    length(AdyacenciasIniciales, CA),
+
+    % Obtenemos la jugada inicial
+    J = [Grid, ColorOrigen, AdyacenciasIniciales, CA, [], 0],
+
+    % Computamos los caminos de interes (frontera)
+    frontera([J], FronteraResultante, Depth),
+
+    % Obtenemos el mejor camino
+    mayor_de_lista_shell([_G, _Col, _Ady, CantidadAdyacentes, Secuencia, _D], FronteraResultante).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % mejor_origen(+Grid, -MejorFila, -MejorColumna)
