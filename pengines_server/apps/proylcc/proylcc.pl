@@ -318,6 +318,7 @@ flick(Grilla, Color, CantidadAdyacentes, NuevaGrilla) :-
 % S: Pila (Stack) sobre la cual se operara
 % E: Elemento a pushear
 % NS: Nueva pila (New Stack), con el elemento ya pusheado
+
 push(S, E, [E | S]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -326,6 +327,7 @@ push(S, E, [E | S]).
 % E: Elemento a remover
 % L: Lista sobre la cual se operara
 % LR: L sin el primer E, si es que habia un E en L.
+
 remover( _, [], []).
 remover( R, [R|T], T).
 remover( R, [H|T], [H|T2]) :- H \= R, remover( R, T, T2).
@@ -336,6 +338,7 @@ remover( R, [H|T], [H|T2]) :- H \= R, remover( R, T, T2).
 % Postcondicion: ColoresSinActual siempre tiene length 5.
 % ColorActual: Color a excluir.
 % ColoresSinActual: Lista de todos los colores excepto ColorActual
+
 colores_sin_actual(ColorActual, ColoresSinActual) :-
     colores(ColoresTotales),
     remover(ColorActual, ColoresTotales, ColoresSinActual).
@@ -351,7 +354,13 @@ colores_sin_actual(ColorActual, ColoresSinActual) :-
  * Depth es la profundidad de la jugada (Se podria obtener a partir de Sec, pero manteniendolo por separado se vuelve mas legible el codigo).
  * */
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% siguiente_nivel(+Jugada, -SiguienteNivel)
+% Obtiene el siguiente nivel de l busqueda por frontera para una dada jugada.
+% El siguiente nivel se compone de todas las posibles jugadas que se pueden obtener a partir de la inicial y tienen mayor cantidad de adyacencias.
+% Jugada: Jugada inicial.
+% SiguienteNivel: Lista de hasta 5 jugadas que componen el siguiente nivel de la busqueda por frontera.
+
 siguiente_nivel([G, C, Ady, CA, Sec, Depth], SiguienteNivel) :-
     colores_sin_actual(C, Colores),
     NuevaDepth is Depth+1,
@@ -362,8 +371,15 @@ siguiente_nivel([G, C, Ady, CA, Sec, Depth], SiguienteNivel) :-
                     append(Sec, [Col], NuevaSec),
                     Jugada = [NuevaGrid, Col, NuevasAdy, NuevasCA, NuevaSec, NuevaDepth]
                     ), SiguienteNivel).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Nota: Los cut son criticos para mantener la semantica del predicado.
+% frontera(+Jugadas, -FronteraResultante, -ProfundidadBuscada)
+% Realiza una busqueda exhaustiva pero optimizada del mejor camino de hasta profundidad ProfundidadBuscada, a partir de una cierta jugada.
+% Jugadas: Lista de Jugadas. Cuando se llama al predicado deberia contener un solo elemento.
+% FronteraResultante: Lista de jugadas que componen la frontera de la busqueda (tienen suficiente profundidad, o bien suficientes puntos para ganar)
+% ProfundidadBuscada: Profundidad maxima de las soluciones buscadas.
+%
+% Nota: Los cut son criticos para mantener la semantica del predicado.
 % Se aplica la optimizacion de condiciones completas y exhaustivas.
 
 %CB: No queda mas frontera por recorrer
@@ -496,11 +512,60 @@ mejor_camino(Grid, Depth, Secuencia, CantidadAdyacentes) :-
     mayor_de_lista_shell([_G, _Col, _Ady, CantidadAdyacentes, Secuencia, _D], FronteraResultante).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% camino_greedy(+Jugada, +ProfundidadBuscada, -Secuencia, -CA)
+% Obtiene, de manera greedy no optimal, un camino bueno.
+% Jugada: Jugada a partir de la cual se busca el camino
+% ProfundidadBuscada: Entero positivo que denota la longitud maxima de los caminos a considerar
+% Secuencia: Lista de colores que es el mejor camino greedy.
+% CA (Cantidad Adyacentes): Cantidad de casillas que son adyacenteC* con el origen al finalizar la secuencia propuesta como mejor.
+
+% CB: Ganamos.
+camino_greedy(Jugada, _ProfundidadBuscada, [Color], P) :-
+    siguiente_nivel(Jugada, SiguienteNivel),
+    mayor_de_lista_shell(Mejor, SiguienteNivel),
+    Mejor = [_G, Color, _Ady, P, _Sec, _Profundidad],
+    puntos_para_ganar(P), !. % No hace falta ningun camino alterno despues de esto.
+
+% CB: Llegamos a profundidad buscada.
+camino_greedy(Jugada, ProfundidadBuscada, [Color], P) :-
+    siguiente_nivel(Jugada, SiguienteNivel),
+    mayor_de_lista_shell(Mejor, SiguienteNivel),
+    Mejor = [_G, Color, _Ady, P, _Sec, ProfundidadBuscada], !. % No hace falta ningun camino alterno despues de esto.
+
+% CR: Seguimos recorriendo
+camino_greedy(Jugada, ProfundidadBuscada, [Color | Resto], CA) :-
+    siguiente_nivel(Jugada, SiguienteNivel),
+    mayor_de_lista_shell(Mejor, SiguienteNivel),
+    Mejor = [_G, Color, _Ady, _P, _Sec, _Profundidad],
+    camino_greedy(Mejor, ProfundidadBuscada, Resto, CA).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+mejor_camino_greedy(Grid, Depth, Secuencia, CantidadAdyacentes) :-
+    % Checkeamos que se haya inicializado el programa previo a tratar de encontrar un mejor camino
+    inicializado,
+    
+    % Obtenemos la informacion necesaria para obtener la casilla de origen
+    fila_origen(FilaOrigen),
+    columna_origen(ColumnaOrigen),
+    elemento_en(Grid, FilaOrigen, ColumnaOrigen, ColorOrigen),
+
+    % Obtenemos las adyacencias iniciales, y la cantidad de las mismas
+    adyacentes_a_origen(Grid, casilla(ColorOrigen, FilaOrigen, ColumnaOrigen), AdyacenciasIniciales),
+    length(AdyacenciasIniciales, CA),
+
+    % Obtenemos la jugada inicial
+    J = [Grid, ColorOrigen, AdyacenciasIniciales, CA, [], 0],
+
+    %Obtenemos el mejor camino segun el criterio greedy
+    camino_greedy(J, Depth, Secuencia, CantidadAdyacentes).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % mejor_origen(+Grid, -MejorFila, -MejorColumna)
 % Asocia a [MejorFila, MejorColumna] la posicion con mas adyacencias iniciales.
 % Grid: Grilla sobre la cual se operara
 % MejorFila: Fila de la mejor posicion de origen
 % MejorColumna: Columna de la mejor posicion de origen
+
 mejor_origen(Grid, MejorFila, MejorColumna) :-
     % Obtenemos manualmente el tamano de Grid.
     % No podemos contar con nuestros predicados dinamicos porque
