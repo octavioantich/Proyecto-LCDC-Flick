@@ -212,8 +212,28 @@ body {
   
   color: white;
 
+  width: 120px;
+  height: 550px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 
-  width: 100px;
+.rightRightPanel::-webkit-scrollbar {
+  width: 5px;
+}
+
+.rightRightPanel::-webkit-scrollbar-track {
+  background: black;
+}
+
+/* Handle */
+.rightRightPanel::-webkit-scrollbar-thumb {
+  background: rgb(211, 211, 211);
+}
+
+/* Handle on hover */
+.rightRightPanel::-webkit-scrollbar-thumb:hover {
+  background: white;
 }
 
 .bloqueGif{
