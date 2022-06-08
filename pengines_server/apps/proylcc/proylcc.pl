@@ -69,23 +69,6 @@ puntos_para_ganar(P) :-
     cant_columnas(C),
     P is F*C.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% buscar(+Lista, +PosBuscada, +PosActual, -Respuesta)
-% Asocia el elemento en la posicion buscada de Lista a Respuesta.
-% Falla si PosBuscada > length(Lista).
-% Lista: Lista en la que se realizara la busqueda.
-% Posicion Buscada: Posicion del elemento Respuesta.
-% Posicion actual: Posicion de la lista que estamos investigando.
-% Respuesta elemento buscado. 
-buscar_shell(Lista, PosBuscada, Respuesta) :-
-    buscar(Lista, PosBuscada, 0, Respuesta).
-
-buscar([E | _Es], PosBuscada, PosBuscada, E).
-buscar([_E | Es], PosBuscada, PosActual, Respuesta) :-
-    SiguientePos is PosActual + 1,
-    SiguientePos =< PosBuscada,
-    buscar(Es, PosBuscada, SiguientePos, Respuesta).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % elemento_en(+Grilla, +FilaBuscada, +ColumnaBuscada, -E).
 % Asocia E con elemento en Grilla[FilaBuscada][ColumnaBuscada].
@@ -94,8 +77,8 @@ buscar([_E | Es], PosBuscada, PosActual, Respuesta) :-
 % Columna: entero en el rango [0..TotalColumnas-1] que denota la Columna del elemento E
 % E: elemento buscado.
 elemento_en(Grilla, FilaBuscada, ColumnaBuscada, E) :-
-	buscar_shell(Grilla, FilaBuscada, Fila),
-	buscar_shell(Fila, ColumnaBuscada, E).
+	nth0(FilaBuscada, Grilla, Fila),
+	nth0(ColumnaBuscada, Fila, E).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Estructura: casilla(Color, Fila, Columna)
@@ -175,10 +158,10 @@ adyCStarSpread(Pend, Vis, Grid, Res):-
 % P: Posicion (par de enteros [F, C]) de la primera casilla.
 % Grid: Grilla sobre la cual se opera
 % A: Posicion de la primera casilla.
-adyC(P, Grid, A):-
-    ady(P, Grid, A),
-    color(P, Grid, C),
-    color(A, Grid, C).
+adyC([F, C], Grid, [FP, CP]):-
+    ady([F, C], Grid, [FP, CP]),
+    elemento_en(Grid, F, C, Color),
+    elemento_en(Grid, FP, CP, Color).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ady(+P, +Grid, +A)
@@ -211,14 +194,6 @@ ady([X, Y], _Grid, [X, Y1]):-
     Y1 is Y - 1.
 
 
-/* 
- * color(P, Grid, C)
- */
-
-color([X,Y], Grid, C):-
-    nth0(X, Grid, F),
-    nth0(Y, F, C).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % reemplazar(+Lista, E, +Pos, +PosActual -NuevaLista)
 % Reemplaza el elemento en la posicion Pos de Lista por E, si es que Pos <= length(lista), y asocia la lista con el reemplazo hecho a NuevaLista 
@@ -249,38 +224,26 @@ reemplazar([X | Xs], E, Pos, PosActual, [X | Resto]) :-
 % NuevaGrilla: Grilla (lista de listas) que imita a Grilla a excepcion de Fil, Col donde tiene E.
 
 poner_en(Grilla, Fil, Col, E, NuevaGrilla) :-
-    buscar_shell(Grilla, Fil, FilaOriginal),
+    nth0(Fil, Grilla, FilaOriginal),
     reemplazar_shell(FilaOriginal, E, Col, FilaConCambio),
     reemplazar_shell(Grilla, FilaConCambio, Fil, NuevaGrilla).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% poner_todas(+Grilla, +Casillas, -NuevaGrilla)
-% Realiza la operacion "poner_en" con todas las casillas de Casillas, y asocia la grilla modificada a NuevaGrilla.
+% poner_todas_color(+Grilla, +Color, +Casillas, -NuevaGrilla)
+% Realiza la operacion "poner_en" con todas las casillas de Casillas
+% modificadas para que sean del color Color, y asocia la grilla modificada a NuevaGrilla.
 % Grilla: grilla base sobre la cual se opera
+% Color: Color al cual cambiaran las casillas
 % Casillas: Lista de casillas.
 % NuevaGrilla: Grilla modificada
 
 % Caso base, no hay mas casillas sobre las cuales operar
-poner_todas(Grilla, [], Grilla).
+poner_todas_color(Grilla, _C, [], Grilla).
 
 % Caso recursivo: Hay al menos una casilla sobre la cual operar en la lista.
-poner_todas(Grilla, [casilla(E, F, C) | Casillas], NuevaGrilla) :-
-    poner_en(Grilla, F, C, E, GrillaConCasilla),
-    poner_todas(GrillaConCasilla, Casillas, NuevaGrilla).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cambiar_color_todas(+Casillas, +Color, -NuevasCasillas)
-% Cambia el color de todas las casillas en Casillas a Color y asocia esta lista modificada con NuevasCasillas
-% Casillas: Lista de casillas a modificar
-% Color: Color que se le pondra a las nuevas casillas
-% NuevasCasillas: Lista de casillas ya modificadas
-
-% Caso base, no hay casillas sobre las cuales operar
-cambiar_color_todas([], _Color, []).
-
-% Caso recursivo, quedan aun casillas
-cambiar_color_todas([casilla(_X, F, C) | CasillasRestantes], Color, [casilla(Color, F, C) | NuevasCasillasRestantes]) :-
-    cambiar_color_todas(CasillasRestantes, Color, NuevasCasillasRestantes).
+poner_todas_color(Grilla, Color, [casilla(_ColorAntiguo, F, C) | Casillas], NuevaGrilla) :-
+    poner_en(Grilla, F, C, Color, GrillaConCasilla),
+    poner_todas_color(GrillaConCasilla, Color, Casillas, NuevaGrilla).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % flick(+Grilla, +Color, -CantidadAdyacentes, -NuevaGrilla)
@@ -300,9 +263,7 @@ flick(Grilla, Color, CantidadAdyacentes, NuevaGrilla) :-
     %adyacentes_a_origen(Grilla, CasillaOrigen, Adyacentes),
     
     adyacentes_actuales(Adyacentes),
-
-    cambiar_color_todas(Adyacentes, Color, AdyacentesFlicked),
-    poner_todas(Grilla, AdyacentesFlicked, NuevaGrilla),
+    poner_todas_color(Grilla, Color, Adyacentes, NuevaGrilla),
     
     NuevoOrigen = casilla(Color, FilaOrigen, ColumnaOrigen),
     adyacentes_a_origen(NuevaGrilla, NuevoOrigen, NuevasAdyacentes),
@@ -418,9 +379,8 @@ simular_flick(Grilla, Color, Adyacentes, NuevasAdyacentes, CantidadAdyacentes, N
     inicializado,
     fila_origen(FilaOrigen),
     columna_origen(ColumnaOrigen),
-
-    cambiar_color_todas(Adyacentes, Color, AdyacentesFlicked),
-    poner_todas(Grilla, AdyacentesFlicked, NuevaGrilla),
+    
+    poner_todas_color(Grilla, Color, Adyacentes, NuevaGrilla),
     
     NuevoOrigen = casilla(Color, FilaOrigen, ColumnaOrigen),
     adyacentes_a_origen(NuevaGrilla, NuevoOrigen, NuevasAdyacentes),
@@ -467,26 +427,6 @@ mayor_de_lista(MayorActual, [Z | Zs], Respuesta) :-
 %la cabeza pasa a ser el menor actual
 mayor_de_lista(_MayorActual, [Z | Zs], Respuesta) :-
     mayor_de_lista(Z, Zs, Respuesta).
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% insert_sort(+L, -LO).
-% Asocia a LO una version ordenada de L. Aplica la estrategia insert sort para ordenar.
-% L: Lista sobre la cual se operara
-% LO: Lista ordenada.
-
-%Caso base: Una lista vacia ya esta ordenada.
-insert_sort([], []).
-
-% Caso Recursivo: Tenemos aun elementos:
-% Eliminamos el mayor, 
-% ordenamos el resto, 
-% ponemos el mayor a la cabeza del resto ordenado.
-insert_sort(L, Ordenada) :-
-    mayor_de_lista_shell(Menor, L),
-	remover(Menor, L, ListaSinMenor),
-    insert_sort(ListaSinMenor, OrdenadaRec),
-    Ordenada = [Menor | OrdenadaRec].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 mejor_camino(Grid, Depth, Secuencia, CantidadAdyacentes) :-
