@@ -92,23 +92,6 @@ body {
   height: 500px;
 }
 
-.rightPanel::-webkit-scrollbar {
-  width: 5px;
-}
-
-.rightPanel::-webkit-scrollbar-track {
-  background: black;
-}
-
-/* Handle */
-.rightPanel::-webkit-scrollbar-thumb {
-  background: rgb(211, 211, 211);
-}
-
-/* Handle on hover */
-.rightPanel::-webkit-scrollbar-thumb:hover {
-  background: white;
-}
 
 .emojisPanel {
   display: flex;
@@ -158,9 +141,19 @@ body {
   background-color: rgba(255, 255, 255, 0.5);
 }
 
-.swal-modal {
+.winSwal{
   background-color: black;
   border: 3px solid white;
+}
+
+.startSwal{
+  position: absolute;
+  top: 0px;
+  left: 150px;
+  background-color: black;
+  border: 3px solid white;
+  height:300px;
+  width: 300px ;
 }
 
 .swal-title {
@@ -202,6 +195,27 @@ body {
   transition: 500ms;
 }
 
+.rightPanel{
+  height: 560px;
+}
+.rightPanel::-webkit-scrollbar {
+  width: 5px;
+}
+
+.rightPanel::-webkit-scrollbar-track {
+  background: black;
+}
+
+/* Handle */
+.rightPanel::-webkit-scrollbar-thumb {
+  background: rgb(211, 211, 211);
+}
+
+/* Handle on hover */
+.rightPanel::-webkit-scrollbar-thumb:hover {
+  background: white;
+}
+
 .rightRightPanel{
   display: flex;
   flex-direction: column;
@@ -213,26 +227,33 @@ body {
   color: white;
 
   width: 120px;
-  height: 550px;
+  height: 580px;
+
+  
+}
+
+.bloqueArray{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   overflow-y: auto;
   overflow-x: hidden;
 }
-
-.rightRightPanel::-webkit-scrollbar {
+.bloqueArray::-webkit-scrollbar {
   width: 5px;
 }
 
-.rightRightPanel::-webkit-scrollbar-track {
+.bloqueArray::-webkit-scrollbar-track {
   background: black;
 }
 
 /* Handle */
-.rightRightPanel::-webkit-scrollbar-thumb {
+.bloqueArray::-webkit-scrollbar-thumb {
   background: rgb(211, 211, 211);
 }
 
 /* Handle on hover */
-.rightRightPanel::-webkit-scrollbar-thumb:hover {
+.bloqueArray::-webkit-scrollbar-thumb:hover {
   background: white;
 }
 
@@ -244,4 +265,8 @@ body {
 
 img {
   max-width: 100%;
+}
+
+:root {
+  accent-color: black;
 }

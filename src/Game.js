@@ -164,16 +164,17 @@ class Game extends React.Component {
   }
 
   handleHelp() {
-    var element1 = document.getElementById("loadingGif");
-    var element2 = document.getElementById("arrayHistorial");
-    element2.style.display = "none";
-    element1.style.display = "block";
-    var depth= parseInt(document.getElementById("profundidad").value);
-    console.log(depth);
     
     if(this.state.waiting || this.state.complete) {
       return;
     }
+    var element1 = document.getElementById("loadingGif");
+    var element2 = document.getElementById("arrayHistorial");
+    var depth= parseInt(document.getElementById("profundidad").value);
+    console.log(depth);
+    var tipoAyuda = document.querySelector('input[name=typeOfHelp]:checked').value;
+    console.log(tipoAyuda);
+    
 
     if(this.state.origin === undefined) {
       const gridS = JSON.stringify(this.state.grid).replaceAll('"', "");
@@ -185,10 +186,15 @@ class Game extends React.Component {
         if(success) {
           console.log(response);
           console.log(response['MF'] + ", " + response['MC']);
-          element1.style.display = "none";
-          element2.style.display = "block";
-
-          //ACA :)
+          var sugFil=response['MF']+1;
+          var sugCol=response['MC']+1;
+          swal({
+            title: "Sugerencia",
+            text: "Te recomendamos empezar en el cuadradito en la columna "+sugCol + " y fila " + sugFil,
+            className: "startSwal",
+            buttons: {
+              cancel: "Entendido",
+            }});
 
           this.setState({waiting: false});
         } else {
@@ -198,9 +204,16 @@ class Game extends React.Component {
 
       return;
     }
+    element2.style.display = "none";
+    element1.style.display = "block";
 
     const gridS = JSON.stringify(this.state.grid).replaceAll('"', "");
-    const queryS = "mejor_camino(" + gridS + "," + depth + ", Soluciones, NroAdyacencias)";
+    var queryS = null;
+    if (tipoAyuda==="clasico"){
+      queryS = "mejor_camino(" + gridS + "," + depth + ", Soluciones, NroAdyacencias)";
+    }else{
+      queryS = "mejor_camino_greedy(" + gridS + "," + depth + ", Soluciones, NroAdyacencias)";
+    }
     console.log(queryS);
     this.setState({waiting: true});
 
@@ -232,6 +245,7 @@ class Game extends React.Component {
     swal({
       title: "🎉Ganaste🎉",
       text: "Felicidades, has ganado el juego en "+this.state.turns+" turnos",
+      className: "winSwal",
       buttons: {
         cancel: "Finalizar juego",
         restart: {
@@ -332,15 +346,19 @@ class Game extends React.Component {
         </div>
         <div className='rightRightPanel'>
           <div className='stackLabel'>Ayuda:</div>
-          <input className='inputField' type="number" id="profundidad" min="0" defaultValue="3" />
+          <input className='inputField' type="number" id="profundidad" min="1" defaultValue="3" />
+          <div>
+            <input type="radio" value="clasico" name="typeOfHelp" defaultChecked /> Clásico<br></br>
+            <input type="radio" value="greedy" name="typeOfHelp" /> Greedy
+          </div>
           <button className='helpButton' onClick={() => this.handleHelp()}>Ayuda</button>
           
           <div className="pointsLab">Resultado:</div>
           <div className="pointsNum">{this.state.pointsWithHelp > 0 ? this.state.pointsWithHelp : '-'}</div>
           
-          <div className='bloqueGif' id="loadingGif"><img src={Logo} /></div>
+          <div className='bloqueGif' id="loadingGif" ><img src={Logo} alt=""/></div>
           
-          <div id="arrayHistorial">  <Stack  array={this.state.help}/> </div>
+          <div className='bloqueArray' id="arrayHistorial">  <Stack  array={this.state.help}/> </div>
         </div>
       </div>
     );
