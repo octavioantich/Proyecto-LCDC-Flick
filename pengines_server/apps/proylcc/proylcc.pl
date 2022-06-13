@@ -429,6 +429,14 @@ mayor_de_lista(_MayorActual, [Z | Zs], Respuesta) :-
     mayor_de_lista(Z, Zs, Respuesta).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% mejor_camino(+Grid, +Depth, -Secuencia, -CantidadAdyacentes)
+% Encuentra el mejor camino de profundidad menor o igual a Depth, a partir de una grilla inicial Grid. 
+% Para ello se utiliza una búsqueda por frontera. Siempre encuentra el camino optimo para la profundidad dada.
+% Grid: Grilla a partir de la cual se operará.
+% Depth: Profundidad máxima de la Secuencia a encontrar.
+% Secuencia: Lista de caracteres (los cuales codifican colores) que denota el mejor camino a tomar.
+% CantidadAdyacentes: Cantidad de celdas que son adyacenteC* con el origen a después de haber realizado los movimientos en Secuencia (en orden) a partir de una grilla inicial Grid.
+
 mejor_camino(Grid, Depth, Secuencia, CantidadAdyacentes) :-
     % Checkeamos que se haya inicializado el programa previo a tratar de encontrar un mejor camino
     inicializado,
@@ -480,6 +488,15 @@ camino_greedy(Jugada, ProfundidadBuscada, [Color | Resto], CA) :-
     camino_greedy(Mejor, ProfundidadBuscada, Resto, CA).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% mejor_camino_greedy(+Grid, +Depth, -Secuencia, -CantidadAdyacentes)
+% Encuentra el un buen camino de profundidad menor o igual a Depth, no necesariamente óptimo,
+% a partir de una grilla inicial Grid. Para ello se utiliza una búsqueda por frontera reducida, 
+% con una estrategia greedy.
+% Grid: Grilla a partir de la cual se operará.
+% Depth: Profundidad máxima de la Secuencia a encontrar.
+% Secuencia: Lista de caracteres (los cuales codifican colores) que denota el mejor camino a tomar.
+% CantidadAdyacentes: Cantidad de celdas que son adyacenteC* con el origen a después de haber realizado los movimientos en Secuencia (en orden) a partir de una grilla inicial Grid.
+
 mejor_camino_greedy(Grid, Depth, Secuencia, CantidadAdyacentes) :-
     % Checkeamos que se haya inicializado el programa previo a tratar de encontrar un mejor camino
     inicializado,
